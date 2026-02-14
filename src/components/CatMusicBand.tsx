@@ -77,40 +77,38 @@ const getAudioContext = () => {
 const playSound = (type: string, volume: number = 0.3) => {
   try {
     const ctx = getAudioContext();
-    const oscillator = ctx.createOscillator();
-    const gainNode = ctx.createGain();
     
-    oscillator.connect(gainNode);
-    gainNode.connect(ctx.destination);
-    
-    // Different sounds for different instruments
-    const sounds: Record<string, { freq: number; type: OscillatorType; duration: number }> = {
-      drum: { freq: 100, type: "triangle", duration: 0.2 },
-      bell: { freq: 800, type: "sine", duration: 0.5 },
-      xylophone: { freq: 600, type: "square", duration: 0.3 },
-      piano: { freq: 440, type: "triangle", duration: 0.4 },
-      guitar: { freq: 330, type: "sawtooth", duration: 0.3 },
-      trumpet: { freq: 550, type: "square", duration: 0.35 },
-      violin: { freq: 480, type: "sawtooth", duration: 0.4 },
-      maraca: { freq: 2000, type: "square", duration: 0.1 },
+    // Short musical melodies for each instrument
+    const melodies: Record<string, { notes: number[]; type: OscillatorType; noteDuration: number }> = {
+      drum: { notes: [150, 100, 150, 100], type: "triangle", noteDuration: 0.1 },
+      bell: { notes: [880, 988, 1047, 880], type: "sine", noteDuration: 0.15 },
+      xylophone: { notes: [523, 659, 784, 659], type: "sine", noteDuration: 0.12 },
+      piano: { notes: [262, 330, 392, 523], type: "triangle", noteDuration: 0.15 },
+      guitar: { notes: [196, 247, 294, 392], type: "sawtooth", noteDuration: 0.12 },
+      trumpet: { notes: [294, 370, 440, 370], type: "square", noteDuration: 0.13 },
+      violin: { notes: [294, 330, 392, 440], type: "sawtooth", noteDuration: 0.15 },
+      maraca: { notes: [2000, 2500, 2000, 2500], type: "square", noteDuration: 0.05 },
     };
     
-    const sound = sounds[type] || sounds.drum;
+    const melody = melodies[type] || melodies.drum;
     
-    oscillator.type = sound.type;
-    oscillator.frequency.setValueAtTime(sound.freq, ctx.currentTime);
-    
-    // Add some variation
-    oscillator.frequency.exponentialRampToValueAtTime(
-      sound.freq * (0.8 + Math.random() * 0.4),
-      ctx.currentTime + sound.duration
-    );
-    
-    gainNode.gain.setValueAtTime(volume, ctx.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + sound.duration);
-    
-    oscillator.start(ctx.currentTime);
-    oscillator.stop(ctx.currentTime + sound.duration);
+    // Play each note in the melody
+    melody.notes.forEach((freq, i) => {
+      const oscillator = ctx.createOscillator();
+      const gainNode = ctx.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(ctx.destination);
+      
+      oscillator.type = melody.type;
+      oscillator.frequency.setValueAtTime(freq, ctx.currentTime + i * melody.noteDuration);
+      
+      gainNode.gain.setValueAtTime(volume, ctx.currentTime + i * melody.noteDuration);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i * melody.noteDuration + melody.noteDuration * 0.9);
+      
+      oscillator.start(ctx.currentTime + i * melody.noteDuration);
+      oscillator.stop(ctx.currentTime + i * melody.noteDuration + melody.noteDuration);
+    });
   } catch (e) {
     console.log("Audio not available");
   }

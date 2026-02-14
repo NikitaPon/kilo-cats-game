@@ -1,20 +1,17 @@
-import Link from "next/link";
 import CatHiddenToys from "@/components/CatHiddenToys";
+import Link from "next/link";
 
 export default function HiddenToysPage() {
   return (
-    <main className="min-h-screen bg-gradient-to-b from-amber-100 to-orange-200 py-8 px-4">
-      <div className="max-w-4xl mx-auto">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 text-purple-600 hover:text-purple-800 mb-6 transition-colors"
-        >
-          <span className="text-2xl">←</span>
-          <span className="font-medium">Назад к меню</span>
-        </Link>
-
-        <CatHiddenToys />
-      </div>
-    </main>
+    <div className="relative">
+      <Link 
+        href="/" 
+        className="absolute top-4 left-4 z-10 px-4 py-2 bg-white/90 rounded-full shadow-lg hover:bg-white transition-colors flex items-center gap-2"
+      >
+        <span>←</span>
+        <span>Back to Menu</span>
+      </Link>
+      <CatHiddenToys />
+    </div>
   );
 }

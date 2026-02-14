@@ -30,8 +30,176 @@ interface Cat {
 interface Trick {
   name: string;
   duration: number;
+  sound: "jump" | "spin" | "balloon" | "star" | "stack" | "swim" | "rocket" | "dance";
   execute: (progress: number, cat1: Cat, cat2: Cat) => void;
 }
+
+// Audio context for generating sounds
+let audioContext: AudioContext | null = null;
+
+const getAudioContext = () => {
+  if (!audioContext) {
+    audioContext = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+  }
+  return audioContext;
+};
+
+// Play trick-specific sounds
+const playTrickSound = (type: Trick["sound"]) => {
+  try {
+    const ctx = getAudioContext();
+    
+    switch (type) {
+      case "jump": {
+        // Bouncy jump sound
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(300, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + 0.1);
+        osc.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.2);
+        gain.gain.setValueAtTime(0.3, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.3);
+        break;
+      }
+      case "spin": {
+        // Spinning whoosh sound
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = "sawtooth";
+        osc.frequency.setValueAtTime(200, ctx.currentTime);
+        for (let i = 0; i < 4; i++) {
+          osc.frequency.setValueAtTime(300 + i * 100, ctx.currentTime + i * 0.15);
+        }
+        gain.gain.setValueAtTime(0.15, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.6);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.6);
+        break;
+      }
+      case "balloon": {
+        // Magical inflation sound
+        const osc = ctx.createOscillator();
+        const osc2 = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        osc2.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = "sine";
+        osc2.type = "triangle";
+        osc.frequency.setValueAtTime(200, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(800, ctx.currentTime + 0.5);
+        osc2.frequency.setValueAtTime(400, ctx.currentTime);
+        osc2.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.5);
+        gain.gain.setValueAtTime(0.2, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+        osc.start(ctx.currentTime);
+        osc2.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.5);
+        osc2.stop(ctx.currentTime + 0.5);
+        break;
+      }
+      case "star": {
+        // Sparkling star sound
+        for (let i = 0; i < 3; i++) {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(800 + i * 200, ctx.currentTime + i * 0.1);
+          gain.gain.setValueAtTime(0.2, ctx.currentTime + i * 0.1);
+          gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i * 0.1 + 0.2);
+          osc.start(ctx.currentTime + i * 0.1);
+          osc.stop(ctx.currentTime + i * 0.1 + 0.2);
+        }
+        break;
+      }
+      case "stack": {
+        // Playful stack sound
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(150, ctx.currentTime);
+        osc.frequency.setValueAtTime(300, ctx.currentTime + 0.1);
+        osc.frequency.setValueAtTime(450, ctx.currentTime + 0.2);
+        gain.gain.setValueAtTime(0.25, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.3);
+        break;
+      }
+      case "swim": {
+        // Watery swimming sound
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const filter = ctx.createBiquadFilter();
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = "sine";
+        filter.type = "lowpass";
+        filter.frequency.setValueAtTime(800, ctx.currentTime);
+        osc.frequency.setValueAtTime(200, ctx.currentTime);
+        osc.frequency.setValueAtTime(250, ctx.currentTime + 0.2);
+        osc.frequency.setValueAtTime(200, ctx.currentTime + 0.4);
+        gain.gain.setValueAtTime(0.2, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.5);
+        break;
+      }
+      case "rocket": {
+        // Rocket launch sound
+        const osc = ctx.createOscillator();
+        const osc2 = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        osc2.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = "sawtooth";
+        osc2.type = "square";
+        osc.frequency.setValueAtTime(100, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.3);
+        osc2.frequency.setValueAtTime(50, ctx.currentTime);
+        osc2.frequency.exponentialRampToValueAtTime(150, ctx.currentTime + 0.3);
+        gain.gain.setValueAtTime(0.15, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+        osc.start(ctx.currentTime);
+        osc2.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.4);
+        osc2.stop(ctx.currentTime + 0.4);
+        break;
+      }
+      case "dance": {
+        // Rhythmic dance beat
+        for (let i = 0; i < 4; i++) {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.type = i % 2 === 0 ? "triangle" : "sine";
+          osc.frequency.setValueAtTime(300 + i * 50, ctx.currentTime + i * 0.1);
+          gain.gain.setValueAtTime(0.2, ctx.currentTime + i * 0.1);
+          gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i * 0.1 + 0.15);
+          osc.start(ctx.currentTime + i * 0.1);
+          osc.stop(ctx.currentTime + i * 0.1 + 0.15);
+        }
+        break;
+      }
+    }
+  } catch (e) {
+    console.log("Audio not available");
+  }
+};
 
 // Helper function to draw star - defined outside component
 const drawStar = (ctx: CanvasRenderingContext2D, x: number, y: number, size: number, opacity: number) => {
@@ -120,6 +288,7 @@ export default function CatGame() {
     {
       name: "Double Jump & High Five!",
       duration: 2000,
+      sound: "jump",
       execute: (progress, cat1, cat2) => {
         // Both cats jump up
         const jumpPhase = Math.sin(progress * Math.PI);
@@ -138,6 +307,7 @@ export default function CatGame() {
     {
       name: "Somersault Symphony!",
       duration: 2500,
+      sound: "spin",
       execute: (progress, cat1, cat2) => {
         // Full rotation somersaults
         cat1.rotation = progress * Math.PI * 4;
@@ -158,6 +328,7 @@ export default function CatGame() {
     {
       name: "Balloon Transformation!",
       duration: 3000,
+      sound: "balloon",
       execute: (progress, cat1, cat2) => {
         // Transform into balloons
         if (progress < 0.3) {
@@ -195,6 +366,7 @@ export default function CatGame() {
     {
       name: "Star Catching Duo!",
       duration: 2500,
+      sound: "star",
       execute: (progress, cat1, cat2) => {
         // Stars fall and cats catch them
         if (progress < 0.5) {
@@ -234,6 +406,7 @@ export default function CatGame() {
     {
       name: "Cat Stack Tower!",
       duration: 2000,
+      sound: "stack",
       execute: (progress, cat1, cat2) => {
         // One cat jumps on top of the other
         if (progress < 0.4) {
@@ -260,6 +433,7 @@ export default function CatGame() {
     {
       name: "Synchronized Swimming!",
       duration: 2500,
+      sound: "swim",
       execute: (progress, cat1, cat2) => {
         // Wave-like swimming motion
         const wave = Math.sin(progress * Math.PI * 4);
@@ -278,6 +452,7 @@ export default function CatGame() {
     {
       name: "Rocket Launch!",
       duration: 2000,
+      sound: "rocket",
       execute: (progress, cat1, cat2) => {
         if (progress < 0.3) {
           // Crouch down
@@ -310,6 +485,7 @@ export default function CatGame() {
     {
       name: "Mirror Dance!",
       duration: 2000,
+      sound: "dance",
       execute: (progress, cat1, cat2) => {
         // Mirror each other's movements
         const dance = Math.sin(progress * Math.PI * 6);
@@ -692,6 +868,9 @@ export default function CatGame() {
     trickStateRef.current.progress = 0;
     setIsPlaying(true);
     setCurrentTrickName(tricks[randomTrick].name);
+    
+    // Play the trick sound
+    playTrickSound(tricks[randomTrick].sound);
   }, [isPlaying, tricks]);
 
   useEffect(() => {
