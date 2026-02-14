@@ -1,10 +1,10 @@
-# Active Context: Cat Acrobatics Game
+# Active Context: Cat Games Collection
 
 ## Current State
 
-**Application Status**: ✅ Complete - Interactive 2D Cat Game
+**Application Status**: ✅ Complete - Cat Games Collection with Menu
 
-A fun 2D cat acrobatics game built with HTML5 Canvas and React. Two cats perform various tricks when the user presses spacebar or clicks a button.
+A collection of fun mini-games featuring two adorable cats (Midnight and Oreo). Users can select games from a main menu and play different interactive experiences.
 
 ## Recently Completed
 
@@ -15,47 +15,62 @@ A fun 2D cat acrobatics game built with HTML5 Canvas and React. Two cats perform
 - [x] Memory bank documentation
 - [x] Recipe system for common features
 - [x] Cat Acrobatics Game implementation
+- [x] Main menu with game selection
+- [x] Cat Music Band game implementation
 
 ## Current Structure
 
 | File/Directory | Purpose | Status |
 |----------------|---------|--------|
-| `src/app/page.tsx` | Home page with game | ✅ Complete |
+| `src/app/page.tsx` | Main menu page | ✅ Complete |
 | `src/app/layout.tsx` | Root layout | ✅ Ready |
 | `src/app/globals.css` | Global styles | ✅ Ready |
-| `src/components/CatGame.tsx` | Main game component | ✅ Complete |
+| `src/app/games/acrobatics/page.tsx` | Acrobatics game route | ✅ Complete |
+| `src/app/games/music-band/page.tsx` | Music band game route | ✅ Complete |
+| `src/components/CatGame.tsx` | Acrobatics game component | ✅ Complete |
+| `src/components/CatMusicBand.tsx` | Music band game component | ✅ Complete |
 | `.kilocode/` | AI context & recipes | ✅ Ready |
 
-## Game Features
+## Game Collection
 
-### Two Cats
+### Main Menu (`/`)
+- Game selection cards with hover effects
+- Links to individual games
+- Responsive grid layout
+
+### Game 1: Cat Acrobatics (`/games/acrobatics`)
+- **Two Cats**: Midnight (black, yellow eyes) and Oreo (black & white, green eyes)
+- **8 Acrobatic Tricks**: Double Jump, Somersault, Balloon Transformation, Star Catching, Cat Stack, Synchronized Swimming, Rocket Launch, Mirror Dance
+- **Interactions**: Press Space or click to trigger random trick
+
+### Game 2: Cat Music Band (`/games/music-band`)
+- **Stage Setting**: Theater background with curtains and spotlights
+- **8 Instruments**: Drum, Bell, Xylophone, Piano, Guitar, Trumpet, Violin, Maraca
+- **Music Creation**: Cats play random instruments with synthesized sounds
+- **Visual Effects**: Floating music notes, sound waves, instrument animations
+- **Interactions**: Press Space or click to start a jam session
+
+## Cat Characters
+
+Both games feature the same two cats:
 - **Midnight**: Medium-sized, completely black with yellow eyes
 - **Oreo**: Large-sized, black back with white belly, black-white paws and face, green eyes
 
-### 8 Acrobatic Tricks
-1. Double Jump & High Five
-2. Somersault Symphony
-3. Balloon Transformation
-4. Star Catching Duo
-5. Cat Stack Tower
-6. Synchronized Swimming
-7. Rocket Launch
-8. Mirror Dance
-
-### Interactions
-- Press **Space** or click button/canvas to trigger random trick
-- Idle animation with breathing and blinking
-- Smooth transitions between states
-
 ## Current Focus
 
-The game is complete and ready to play. Future enhancements could include:
-- More trick variations
-- Sound effects
-- Score tracking
+The game collection is complete with two mini-games. Future enhancements could include:
+- More mini-games
+- Score tracking across games
+- Sound settings
 - Additional cat characters
 
 ## Quick Start Guide
+
+### To add a new game:
+
+1. Create game component in `src/components/NewGame.tsx`
+2. Create route at `src/app/games/new-game/page.tsx`
+3. Add game card to `src/app/page.tsx` games array
 
 ### To add a new page:
 
@@ -102,6 +117,7 @@ export async function GET() {
 - [ ] Add more recipes (auth, email, etc.)
 - [ ] Add example components
 - [ ] Add testing setup recipe
+- [ ] Add more mini-games
 
 ## Session History
 
@@ -109,3 +125,4 @@ export async function GET() {
 |------|---------|
 | Initial | Template created with base setup |
 | 2026-02-14 | Added 2D Cat Acrobatics game with two cats and 8 tricks |
+| 2026-02-14 | Added main menu and Cat Music Band game with 8 instruments |
