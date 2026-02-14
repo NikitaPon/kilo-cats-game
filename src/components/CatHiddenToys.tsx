@@ -782,7 +782,7 @@ export default function CatHiddenToys() {
               return { ...cat, x: cat.targetX, y: cat.targetY, isMoving: false };
             }
 
-            const speed = 8;
+            const speed = 3;
             return {
               ...cat,
               x: cat.x + (dx / dist) * speed,
@@ -874,7 +874,7 @@ export default function CatHiddenToys() {
           discoveredToy: null,
         }))
       );
-    }, 1000);
+    }, 2500);
   }, [cats, toys, discoveryAnimation.active, playDiscoverySound]);
 
   // Keyboard and click handlers
