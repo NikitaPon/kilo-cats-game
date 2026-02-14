@@ -159,3 +159,4 @@ export async function GET() {
 | 2026-02-14 | Translated all game text to Russian language |
 | 2026-02-14 | Fixed Sky Wonders: items now fall correctly, cats renamed to Miuska/Aliska |
 | 2026-02-14 | Unified cat design across all games, fixed "Back to menu" button |
+| 2026-02-14 | Unified cat design in CatGame.tsx and CatMusicBand.tsx based on CatSkyWonders.tsx |
