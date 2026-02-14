@@ -1,3 +1,9 @@
+import CatGame from "@/components/CatGame";
+
 export default function Home() {
-  return <main className="min-h-screen bg-neutral-900" />;
+  return (
+    <main className="min-h-screen">
+      <CatGame />
+    </main>
+  );
 }
