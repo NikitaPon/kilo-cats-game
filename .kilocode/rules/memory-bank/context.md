@@ -155,3 +155,4 @@ export async function GET() {
 | 2026-02-14 | Fixed back buttons in Hidden Toys and Sky Wonders to match other games |
 | 2026-02-14 | Added trick-specific sounds to Cat Acrobatics game |
 | 2026-02-14 | Replaced Music Band sounds with short musical melodies |
+| 2026-02-14 | Translated all game text to Russian language |
