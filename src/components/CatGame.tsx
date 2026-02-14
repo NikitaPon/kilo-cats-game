@@ -286,7 +286,7 @@ export default function CatGame() {
 
   const tricks: Trick[] = useMemo(() => [
     {
-      name: "Double Jump & High Five!",
+      name: "Двойной прыжок и Дай пять!",
       duration: 2000,
       sound: "jump",
       execute: (progress, cat1, cat2) => {
@@ -305,7 +305,7 @@ export default function CatGame() {
       },
     },
     {
-      name: "Somersault Symphony!",
+      name: "Сальто-симфония!",
       duration: 2500,
       sound: "spin",
       execute: (progress, cat1, cat2) => {
@@ -326,7 +326,7 @@ export default function CatGame() {
       },
     },
     {
-      name: "Balloon Transformation!",
+      name: "Превращение в шарики!",
       duration: 3000,
       sound: "balloon",
       execute: (progress, cat1, cat2) => {
@@ -364,7 +364,7 @@ export default function CatGame() {
       },
     },
     {
-      name: "Star Catching Duo!",
+      name: "Ловля звёзд!",
       duration: 2500,
       sound: "star",
       execute: (progress, cat1, cat2) => {
@@ -404,7 +404,7 @@ export default function CatGame() {
       },
     },
     {
-      name: "Cat Stack Tower!",
+      name: "Кошачья башня!",
       duration: 2000,
       sound: "stack",
       execute: (progress, cat1, cat2) => {
@@ -431,7 +431,7 @@ export default function CatGame() {
       },
     },
     {
-      name: "Synchronized Swimming!",
+      name: "Синхронное плавание!",
       duration: 2500,
       sound: "swim",
       execute: (progress, cat1, cat2) => {
@@ -450,7 +450,7 @@ export default function CatGame() {
       },
     },
     {
-      name: "Rocket Launch!",
+      name: "Ракетный запуск!",
       duration: 2000,
       sound: "rocket",
       execute: (progress, cat1, cat2) => {
@@ -483,7 +483,7 @@ export default function CatGame() {
       },
     },
     {
-      name: "Mirror Dance!",
+      name: "Зеркальный танец!",
       duration: 2000,
       sound: "dance",
       execute: (progress, cat1, cat2) => {
@@ -964,8 +964,8 @@ export default function CatGame() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-blue-100 to-green-100 p-4">
-      <h1 className="text-3xl font-bold text-gray-800 mb-2">🐱 Cat Acrobatics! 🐱</h1>
-      <p className="text-gray-600 mb-4">Press <kbd className="px-2 py-1 bg-gray-200 rounded font-mono">Space</kbd> or click the button to see the cats perform tricks!</p>
+      <h1 className="text-3xl font-bold text-gray-800 mb-2">🐱 Кошачьи Акробаты! 🐱</h1>
+      <p className="text-gray-600 mb-4">Нажми <kbd className="px-2 py-1 bg-gray-200 rounded font-mono">Пробел</kbd> или кнопку, чтобы увидеть трюки!</p>
       
       <div className="relative">
         <canvas
@@ -991,12 +991,12 @@ export default function CatGame() {
               : "bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 shadow-lg"
           }`}
         >
-          {isPlaying ? "Performing..." : "🎪 Perform Trick! 🎪"}
+          {isPlaying ? "Выступаем..." : "🎪 Показать трюк! 🎪"}
         </button>
       </div>
 
       <div className="mt-6 text-center text-gray-500 text-sm">
-        <p>Meet our stars: <span className="font-semibold text-gray-700">Midnight</span> (black cat with yellow eyes) and <span className="font-semibold text-gray-700">Oreo</span> (black & white cat with green eyes)</p>
+        <p>Наши звёзды: <span className="font-semibold text-gray-700">Миднайт</span> (чёрный кот с жёлтыми глазами) и <span className="font-semibold text-gray-700">Орео</span> (чёрно-белый кот с зелёными глазами)</p>
       </div>
     </div>
   );

@@ -52,14 +52,14 @@ interface SoundWave {
 }
 
 const INSTRUMENTS: Omit<Instrument, "x" | "y" | "width" | "height">[] = [
-  { name: "Drum", emoji: "🥁", color: "#8B4513", sound: "drum" },
-  { name: "Bell", emoji: "🔔", color: "#FFD700", sound: "bell" },
-  { name: "Xylophone", emoji: "🎵", color: "#FF69B4", sound: "xylophone" },
-  { name: "Piano", emoji: "🎹", color: "#1a1a1a", sound: "piano" },
-  { name: "Guitar", emoji: "🎸", color: "#CD853F", sound: "guitar" },
-  { name: "Trumpet", emoji: "🎺", color: "#FFD700", sound: "trumpet" },
-  { name: "Violin", emoji: "🎻", color: "#8B4513", sound: "violin" },
-  { name: "Maraca", emoji: "🪇", color: "#DEB887", sound: "maraca" },
+  { name: "Барабан", emoji: "🥁", color: "#8B4513", sound: "drum" },
+  { name: "Колокольчик", emoji: "🔔", color: "#FFD700", sound: "bell" },
+  { name: "Ксилофон", emoji: "🎵", color: "#FF69B4", sound: "xylophone" },
+  { name: "Пианино", emoji: "🎹", color: "#1a1a1a", sound: "piano" },
+  { name: "Гитара", emoji: "🎸", color: "#CD853F", sound: "guitar" },
+  { name: "Труба", emoji: "🎺", color: "#FFD700", sound: "trumpet" },
+  { name: "Скрипка", emoji: "🎻", color: "#8B4513", sound: "violin" },
+  { name: "Маракасы", emoji: "🪇", color: "#DEB887", sound: "maraca" },
 ];
 
 const NOTE_EMOJIS = ["🎵", "🎶", "🎼", "♪", "♫", "✨"];
@@ -683,9 +683,9 @@ export default function CatMusicBand() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-amber-900 to-amber-800 p-4">
-      <h1 className="text-3xl font-bold text-white mb-2">🎵 Cat Music Band 🎵</h1>
+      <h1 className="text-3xl font-bold text-white mb-2">🎵 Кошачий Оркестр 🎵</h1>
       <p className="text-amber-200 mb-4">
-        Press <kbd className="px-2 py-1 bg-amber-700 rounded font-mono text-white">Space</kbd> or click to make music!
+        Нажми <kbd className="px-2 py-1 bg-amber-700 rounded font-mono text-white">Пробел</kbd> или кликни, чтобы играть музыку!
       </p>
       
       <div className="relative">
@@ -714,14 +714,14 @@ export default function CatMusicBand() {
               : "bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 shadow-lg"
           }`}
         >
-          {isPlaying ? "🎵 Playing... 🎵" : "🎸 Jam Session! 🎸"}
+          {isPlaying ? "🎵 Играем... 🎵" : "🎸 Джем-сейшн! 🎸"}
         </button>
       </div>
 
       <div className="mt-6 text-center text-amber-200 text-sm">
         <p>
-          Meet our musicians: <span className="font-semibold text-white">Midnight</span> and{" "}
-          <span className="font-semibold text-white">Oreo</span> - they love making music together!
+          Наши музыканты: <span className="font-semibold text-white">Миднайт</span> и{" "}
+          <span className="font-semibold text-white">Орео</span> — обожают играть вместе!
         </p>
       </div>
     </div>

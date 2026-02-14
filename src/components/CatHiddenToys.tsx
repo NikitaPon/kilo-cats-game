@@ -851,7 +851,7 @@ export default function CatHiddenToys() {
       })
     );
 
-    setMessage(`${randomCatIndex === 0 ? "Midnight" : "Oreo"} ищет игрушку...`);
+    setMessage(`${randomCatIndex === 0 ? "Миднайт" : "Орео"} ищет игрушку...`);
 
     // After cat arrives, reveal toy
     setTimeout(() => {

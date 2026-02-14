@@ -3,32 +3,32 @@ import Link from "next/link";
 const games = [
   {
     id: "acrobatics",
-    title: "Cat Acrobatics",
-    description: "Watch Midnight and Oreo perform amazing acrobatic tricks!",
+    title: "Кошачьи Акробаты",
+    description: "Смотрите, как Миднайт и Орео выполняют удивительные трюки!",
     emoji: "🎪",
     color: "from-purple-500 to-pink-500",
     href: "/games/acrobatics",
   },
   {
     id: "music-band",
-    title: "Cat Music Band",
-    description: "Make music with our talented cat musicians!",
+    title: "Кошачий Оркестр",
+    description: "Создавайте музыку с нашими талантливыми котами-музыкантами!",
     emoji: "🎵",
     color: "from-blue-500 to-cyan-500",
     href: "/games/music-band",
   },
   {
     id: "hidden-toys",
-    title: "Hidden Toys",
-    description: "Help the cats find hidden toys around the room!",
+    title: "Спрятанные Игрушки",
+    description: "Помогите котам найти спрятанные игрушки в комнате!",
     emoji: "🎁",
     color: "from-amber-500 to-orange-500",
     href: "/games/hidden-toys",
   },
   {
     id: "sky-wonders",
-    title: "Sky Wonders",
-    description: "Watch magical items rain from the clouds!",
+    title: "Небесные Чудеса",
+    description: "Смотрите, как волшебные предметы падают с облаков!",
     emoji: "✨",
     color: "from-sky-400 to-purple-500",
     href: "/games/sky-wonders",
@@ -41,10 +41,10 @@ export default function Home() {
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold text-gray-800 mb-4">
-            🐱 Cat Games 🐱
+            🐱 Кошачьи Игры 🐱
           </h1>
           <p className="text-xl text-gray-600">
-            Choose a game to play with our adorable cats!
+            Выберите игру, чтобы поиграть с нашими очаровательными котами!
           </p>
         </div>
 
@@ -74,7 +74,7 @@ export default function Home() {
 
         <div className="mt-12 text-center">
           <p className="text-gray-500 text-sm">
-            More games coming soon! 🎮
+            Скоро будут новые игры! 🎮
           </p>
         </div>
       </div>

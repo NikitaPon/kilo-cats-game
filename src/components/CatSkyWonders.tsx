@@ -651,7 +651,7 @@ export default function CatSkyWonders() {
 
       ctx.fillStyle = "#333";
       ctx.font = "bold 16px Arial";
-      ctx.fillText(`✨ Caught: ${caughtCount}`, 25, 35);
+      ctx.fillText(`✨ Поймано: ${caughtCount}`, 25, 35);
 
       // Instructions
       if (!isRaining) {
@@ -664,7 +664,7 @@ export default function CatSkyWonders() {
         ctx.fillStyle = "#333";
         ctx.font = "bold 18px Arial";
         ctx.textAlign = "center";
-        ctx.fillText("Press SPACE for Magic Rain!", canvas.width / 2, canvas.height / 2 + 5);
+        ctx.fillText("Нажми ПРОБЕЛ для волшебного дождя!", canvas.width / 2, canvas.height / 2 + 5);
         ctx.textAlign = "left";
       }
 
@@ -697,7 +697,7 @@ export default function CatSkyWonders() {
   return (
     <div className="flex flex-col items-center justify-center min-h-[80vh] p-4">
       <h1 className="text-3xl font-bold text-white mb-4 drop-shadow-lg">
-        ✨ Sky Wonders ✨
+        ✨ Небесные Чудеса ✨
       </h1>
       <canvas
         ref={canvasRef}
@@ -707,10 +707,10 @@ export default function CatSkyWonders() {
         className="border-4 border-white rounded-2xl shadow-2xl cursor-pointer"
       />
       <p className="text-white mt-4 text-lg drop-shadow">
-        Press <kbd className="px-2 py-1 bg-white/20 rounded">Space</kbd> or click to make magic rain from the clouds!
+        Нажми <kbd className="px-2 py-1 bg-white/20 rounded">Пробел</kbd> или кликни, чтобы пошёл волшебный дождь!
       </p>
       <p className="text-white/80 mt-2 text-sm">
-        Watch the cats jump and catch the falling wonders! 🐱
+        Смотри, как коты прыгают и ловят падающие чудеса! 🐱
       </p>
     </div>
   );
