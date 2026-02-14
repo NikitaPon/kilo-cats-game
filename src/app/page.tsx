@@ -25,6 +25,14 @@ const games = [
     color: "from-amber-500 to-orange-500",
     href: "/games/hidden-toys",
   },
+  {
+    id: "sky-wonders",
+    title: "Sky Wonders",
+    description: "Watch magical items rain from the clouds!",
+    emoji: "✨",
+    color: "from-sky-400 to-purple-500",
+    href: "/games/sky-wonders",
+  },
 ];
 
 export default function Home() {

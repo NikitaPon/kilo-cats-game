@@ -18,6 +18,7 @@ A collection of fun mini-games featuring two adorable cats (Midnight and Oreo). 
 - [x] Main menu with game selection
 - [x] Cat Music Band game implementation
 - [x] Hidden Toys game implementation
+- [x] Sky Wonders game implementation
 
 ## Current Structure
 
@@ -29,9 +30,11 @@ A collection of fun mini-games featuring two adorable cats (Midnight and Oreo). 
 | `src/app/games/acrobatics/page.tsx` | Acrobatics game route | ✅ Complete |
 | `src/app/games/music-band/page.tsx` | Music band game route | ✅ Complete |
 | `src/app/games/hidden-toys/page.tsx` | Hidden toys game route | ✅ Complete |
+| `src/app/games/sky-wonders/page.tsx` | Sky wonders game route | ✅ Complete |
 | `src/components/CatGame.tsx` | Acrobatics game component | ✅ Complete |
 | `src/components/CatMusicBand.tsx` | Music band game component | ✅ Complete |
 | `src/components/CatHiddenToys.tsx` | Hidden toys game component | ✅ Complete |
+| `src/components/CatSkyWonders.tsx` | Sky wonders game component | ✅ Complete |
 | `.kilocode/` | AI context & recipes | ✅ Ready |
 
 ## Game Collection
@@ -61,6 +64,15 @@ A collection of fun mini-games featuring two adorable cats (Midnight and Oreo). 
 - **Visual Effects**: Expanding circles, sparkles, bouncing toys
 - **Interactions**: Press Space or click to make cats discover toys
 
+### Game 4: Sky Wonders (`/games/sky-wonders`)
+- **Sky Setting**: Beautiful sky with clouds, sun, and grassy ground
+- **5 Falling Item Types**: Petals, Confetti, Bubbles, Stars, Toy Mice
+- **Magic Rain**: Beautiful items fall from clouds instead of rain
+- **Cat Actions**: Cats jump and try to catch falling items
+- **Visual Effects**: Floating clouds, animated items, jumping cats
+- **Interactions**: Press Space or click to trigger magic rain
+- **Calming Experience**: Peaceful and magical atmosphere
+
 ## Cat Characters
 
 All games feature the same two cats:
@@ -69,7 +81,7 @@ All games feature the same two cats:
 
 ## Current Focus
 
-The game collection is complete with three mini-games. Future enhancements could include:
+The game collection is complete with four mini-games. Future enhancements could include:
 - More mini-games
 - Score tracking across games
 - Sound settings
@@ -138,3 +150,4 @@ export async function GET() {
 | 2026-02-14 | Added 2D Cat Acrobatics game with two cats and 8 tricks |
 | 2026-02-14 | Added main menu and Cat Music Band game with 8 instruments |
 | 2026-02-14 | Added Hidden Toys game with 5 hiding spots and 6 toy types |
+| 2026-02-14 | Added Sky Wonders game with magic rain and catching mechanics |
