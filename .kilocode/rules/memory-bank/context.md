@@ -4,7 +4,7 @@
 
 **Application Status**: ✅ Complete - Cat Games Collection with Menu
 
-A collection of fun mini-games featuring two adorable cats (Midnight and Oreo). Users can select games from a main menu and play different interactive experiences.
+A collection of fun mini-games featuring two adorable cats (Miuska and Aliska). Users can select games from a main menu and play different interactive experiences.
 
 ## Recently Completed
 
@@ -19,6 +19,7 @@ A collection of fun mini-games featuring two adorable cats (Midnight and Oreo). 
 - [x] Cat Music Band game implementation
 - [x] Hidden Toys game implementation
 - [x] Sky Wonders game implementation
+- [x] Bug fixes: back button, cat names, Sky Wonders falling items
 
 ## Current Structure
 
@@ -45,7 +46,7 @@ A collection of fun mini-games featuring two adorable cats (Midnight and Oreo). 
 - Responsive grid layout
 
 ### Game 1: Cat Acrobatics (`/games/acrobatics`)
-- **Two Cats**: Midnight (black, yellow eyes) and Oreo (black & white, green eyes)
+- **Two Cats**: Miuska (black, yellow eyes) and Aliska (black & white, green eyes)
 - **8 Acrobatic Tricks**: Double Jump, Somersault, Balloon Transformation, Star Catching, Cat Stack, Synchronized Swimming, Rocket Launch, Mirror Dance
 - **Interactions**: Press Space or click to trigger random trick
 
@@ -76,8 +77,8 @@ A collection of fun mini-games featuring two adorable cats (Midnight and Oreo). 
 ## Cat Characters
 
 All games feature the same two cats:
-- **Midnight**: Medium-sized, completely black with yellow eyes
-- **Oreo**: Large-sized, black back with white belly, black-white paws and face, green eyes
+- **Miuska (Миуска)**: Medium-sized, completely black with yellow eyes
+- **Aliska (Алиска)**: Large-sized, black back with white belly, black-white paws and face, green eyes
 
 ## Current Focus
 
@@ -156,3 +157,5 @@ export async function GET() {
 | 2026-02-14 | Added trick-specific sounds to Cat Acrobatics game |
 | 2026-02-14 | Replaced Music Band sounds with short musical melodies |
 | 2026-02-14 | Translated all game text to Russian language |
+| 2026-02-14 | Fixed Sky Wonders: items now fall correctly, cats renamed to Miuska/Aliska |
+| 2026-02-14 | Unified cat design across all games, fixed "Back to menu" button |
