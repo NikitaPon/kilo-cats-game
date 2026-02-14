@@ -128,7 +128,7 @@ export default function CatMusicBand() {
     color: "#1a1a1a",
     bellyColor: "#1a1a1a",
     eyeColor: "#FFD700",
-    name: "Midnight",
+    name: "Miuska",
     isLarge: false,
     rotation: 0,
     scaleX: 1,
@@ -147,7 +147,7 @@ export default function CatMusicBand() {
     color: "#1a1a1a",
     bellyColor: "#FFFFFF",
     eyeColor: "#4CAF50",
-    name: "Oreo",
+    name: "Aliska",
     isLarge: true,
     rotation: 0,
     scaleX: 1,
@@ -188,7 +188,7 @@ export default function CatMusicBand() {
     ctx.fillStyle = cat.color;
     ctx.fill();
 
-    // Belly (for Oreo)
+    // Belly (for Aliska)
     if (cat.bellyColor !== cat.color) {
       ctx.beginPath();
       ctx.ellipse(0, bodyOffset + 5, cat.width / 3, cat.height / 3, 0, 0, Math.PI * 2);

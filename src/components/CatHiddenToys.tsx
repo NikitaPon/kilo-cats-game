@@ -24,7 +24,7 @@ interface Toy {
 }
 
 interface Cat {
-  name: "Midnight" | "Oreo";
+  name: "Miuska" | "Aliska";
   x: number;
   y: number;
   targetX: number;
@@ -60,8 +60,8 @@ export default function CatHiddenToys() {
 
   const [toys, setToys] = useState<Toy[]>([]);
   const [cats, setCats] = useState<Cat[]>([
-    { name: "Midnight", x: 200, y: 400, targetX: 200, targetY: 400, isMoving: false, isDiscovering: false, discoveredToy: null },
-    { name: "Oreo", x: 600, y: 420, targetX: 600, targetY: 420, isMoving: false, isDiscovering: false, discoveredToy: null },
+    { name: "Miuska", x: 200, y: 400, targetX: 200, targetY: 400, isMoving: false, isDiscovering: false, discoveredToy: null },
+    { name: "Aliska", x: 600, y: 420, targetX: 600, targetY: 420, isMoving: false, isDiscovering: false, discoveredToy: null },
   ]);
   const [discoveryAnimation, setDiscoveryAnimation] = useState<{
     active: boolean;
@@ -298,11 +298,11 @@ export default function CatHiddenToys() {
     ctx.save();
     ctx.translate(cat.x, cat.y);
 
-    const isMidnight = cat.name === "Midnight";
-    const catColor = isMidnight ? "#1a1a1a" : "#2d2d2d";
-    const bellyColor = isMidnight ? "#1a1a1a" : "#f5f5f5";
-    const eyeColor = isMidnight ? "#FFD700" : "#4CAF50";
-    const scale = isMidnight ? 1 : 1.2;
+    const isMiuska = cat.name === "Miuska";
+    const catColor = "#1a1a1a";
+    const bellyColor = isMiuska ? "#1a1a1a" : "#f5f5f5";
+    const eyeColor = isMiuska ? "#FFD700" : "#4CAF50";
+    const scale = isMiuska ? 1 : 1.2;
 
     ctx.scale(scale, scale);
 
@@ -334,8 +334,8 @@ export default function CatHiddenToys() {
     ctx.ellipse(0, 10, 35, 30, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // Belly (for Oreo)
-    if (!isMidnight) {
+    // Belly (for Aliska)
+    if (!isMiuska) {
       ctx.fillStyle = bellyColor;
       ctx.beginPath();
       ctx.ellipse(0, 15, 20, 18, 0, 0, Math.PI * 2);
@@ -351,8 +351,8 @@ export default function CatHiddenToys() {
     ctx.ellipse(20, 30, 8, 15, 0.2, 0, Math.PI * 2);
     ctx.fill();
 
-    // Paws (white for Oreo)
-    if (!isMidnight) {
+    // Paws (white for Aliska)
+    if (!isMiuska) {
       ctx.fillStyle = "#f5f5f5";
       ctx.beginPath();
       ctx.ellipse(-20, 42, 6, 4, 0, 0, Math.PI * 2);
@@ -397,8 +397,8 @@ export default function CatHiddenToys() {
     ctx.closePath();
     ctx.fill();
 
-    // Face markings for Oreo
-    if (!isMidnight) {
+    // Face markings for Aliska
+    if (!isMiuska) {
       ctx.fillStyle = "#f5f5f5";
       ctx.beginPath();
       ctx.ellipse(0, -20, 12, 10, 0, 0, Math.PI * 2);

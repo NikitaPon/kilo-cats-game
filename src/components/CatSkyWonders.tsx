@@ -27,7 +27,7 @@ interface Cat {
   jumpHeight: number;
   jumpPhase: number;
   targetX: number | null;
-  name: "Midnight" | "Oreo";
+  name: "Miuska" | "Aliska";
 }
 
 interface Cloud {
@@ -55,7 +55,7 @@ const ITEM_COLORS = {
   mouse: ["#808080", "#A9A9A9", "#696969", "#778899", "#C0C0C0"],
 };
 
-const CLOUDS: Cloud[] = [
+const INITIAL_CLOUDS: Cloud[] = [
   { x: 100, y: 60, width: 150, height: 60, speed: 0.3 },
   { x: 350, y: 40, width: 180, height: 70, speed: 0.2 },
   { x: 600, y: 80, width: 140, height: 55, speed: 0.4 },
@@ -64,17 +64,23 @@ const CLOUDS: Cloud[] = [
 
 export default function CatSkyWonders() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [isRaining, setIsRaining] = useState(false);
-  const [items, setItems] = useState<FallingItem[]>([]);
-  const [cats, setCats] = useState<Cat[]>([
-    { x: 250, y: 420, baseY: 420, jumping: false, jumpHeight: 0, jumpPhase: 0, targetX: null, name: "Midnight" },
-    { x: 550, y: 430, baseY: 430, jumping: false, jumpHeight: 0, jumpPhase: 0, targetX: null, name: "Oreo" },
-  ]);
-  const [clouds, setClouds] = useState<Cloud[]>(CLOUDS);
-  const [caughtCount, setCaughtCount] = useState(0);
   const animationRef = useRef<number | null>(null);
-  const itemCounterRef = useRef(0);
   const audioContextRef = useRef<AudioContext | null>(null);
+  
+  // Use refs for game state to avoid re-renders during animation
+  const itemsRef = useRef<FallingItem[]>([]);
+  const catsRef = useRef<Cat[]>([
+    { x: 250, y: 420, baseY: 420, jumping: false, jumpHeight: 0, jumpPhase: 0, targetX: null, name: "Miuska" },
+    { x: 550, y: 430, baseY: 430, jumping: false, jumpHeight: 0, jumpPhase: 0, targetX: null, name: "Aliska" },
+  ]);
+  const cloudsRef = useRef<Cloud[]>([...INITIAL_CLOUDS]);
+  const caughtCountRef = useRef(0);
+  const isRainingRef = useRef(false);
+  const itemCounterRef = useRef(0);
+  
+  // State for UI updates only
+  const [caughtCount, setCaughtCount] = useState(0);
+  const [isRaining, setIsRaining] = useState(false);
 
   // Initialize audio context
   const getAudioContext = useCallback(() => {
@@ -135,9 +141,11 @@ export default function CatSkyWonders() {
 
   // Start the magical rain
   const startMagicRain = useCallback(() => {
-    if (isRaining) return;
+    if (isRainingRef.current) return;
 
+    isRainingRef.current = true;
     setIsRaining(true);
+    caughtCountRef.current = 0;
     setCaughtCount(0);
     playMagicSound();
 
@@ -156,40 +164,37 @@ export default function CatSkyWonders() {
         type,
         color: colors[Math.floor(Math.random() * colors.length)],
         size: 15 + Math.random() * 20,
-        speed: 2 + Math.random() * 3,
+        speed: 1.5 + Math.random() * 2, // Slower speed
         rotation: Math.random() * Math.PI * 2,
-        rotationSpeed: (Math.random() - 0.5) * 0.1,
+        rotationSpeed: (Math.random() - 0.5) * 0.05,
         wobble: Math.random() * Math.PI * 2,
-        wobbleSpeed: 0.02 + Math.random() * 0.03,
+        wobbleSpeed: 0.02 + Math.random() * 0.02,
         caught: false,
         opacity: 1,
       });
     }
 
-    setItems(newItems);
+    itemsRef.current = newItems;
 
     // Make cats start jumping
-    setCats((prevCats) =>
-      prevCats.map((cat) => ({
-        ...cat,
-        jumping: true,
-        jumpPhase: Math.random() * Math.PI * 2,
-        targetX: 200 + Math.random() * 400,
-      }))
-    );
+    catsRef.current = catsRef.current.map((cat) => ({
+      ...cat,
+      jumping: true,
+      jumpPhase: Math.random() * Math.PI * 2,
+      targetX: 200 + Math.random() * 400,
+    }));
 
     // Stop after a few seconds
     setTimeout(() => {
+      isRainingRef.current = false;
       setIsRaining(false);
-      setCats((prevCats) =>
-        prevCats.map((cat) => ({
-          ...cat,
-          jumping: false,
-          targetX: null,
-        }))
-      );
-    }, 5000);
-  }, [isRaining, playMagicSound]);
+      catsRef.current = catsRef.current.map((cat) => ({
+        ...cat,
+        jumping: false,
+        targetX: null,
+      }));
+    }, 6000);
+  }, [playMagicSound]);
 
   // Draw a cloud
   const drawCloud = useCallback((ctx: CanvasRenderingContext2D, cloud: Cloud) => {
@@ -265,7 +270,7 @@ export default function CatSkyWonders() {
         ctx.beginPath();
         for (let i = 0; i < 5; i++) {
           const angle = (i * 4 * Math.PI) / 5 - Math.PI / 2;
-          const r = i === 0 ? item.size / 2 : item.size / 2;
+          const r = item.size / 2;
           const x = Math.cos(angle) * r;
           const y = Math.sin(angle) * r;
           if (i === 0) ctx.moveTo(x, y);
@@ -311,166 +316,191 @@ export default function CatSkyWonders() {
     ctx.restore();
   }, []);
 
-  // Draw a cat
-  const drawCat = useCallback((ctx: CanvasRenderingContext2D, cat: Cat) => {
+  // Draw a cat - unified design based on CatGame.tsx
+  const drawCat = useCallback((ctx: CanvasRenderingContext2D, cat: Cat, time: number) => {
     const x = cat.x;
     const y = cat.y - cat.jumpHeight;
 
     ctx.save();
+    ctx.translate(x, y);
 
-    if (cat.name === "Midnight") {
-      // Midnight - black cat with yellow eyes
-      ctx.fillStyle = "#1a1a1a";
+    const isMiuska = cat.name === "Miuska";
+    const catColor = "#1a1a1a";
+    const bellyColor = isMiuska ? "#1a1a1a" : "#f5f5f5";
+    const eyeColor = isMiuska ? "#FFD700" : "#4CAF50";
+    const scale = isMiuska ? 1 : 1.2;
 
-      // Body
+    ctx.scale(scale, scale);
+
+    // Tail animation
+    const tailWag = Math.sin(time * 3) * 0.2;
+    ctx.save();
+    ctx.rotate(tailWag);
+    ctx.fillStyle = catColor;
+    ctx.beginPath();
+    ctx.moveTo(-30, -10);
+    ctx.quadraticCurveTo(-50, -30, -45, -50);
+    ctx.quadraticCurveTo(-40, -55, -35, -50);
+    ctx.quadraticCurveTo(-40, -30, -25, -10);
+    ctx.fill();
+    ctx.restore();
+
+    // Back legs
+    ctx.fillStyle = catColor;
+    ctx.beginPath();
+    ctx.ellipse(-15, 35, 12, 18, -0.3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(15, 35, 12, 18, 0.3, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Body
+    ctx.fillStyle = catColor;
+    ctx.beginPath();
+    ctx.ellipse(0, 10, 35, 30, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Belly (for Aliska)
+    if (!isMiuska) {
+      ctx.fillStyle = bellyColor;
       ctx.beginPath();
-      ctx.ellipse(x, y + 25, 35, 28, 0, 0, Math.PI * 2);
+      ctx.ellipse(0, 15, 20, 18, 0, 0, Math.PI * 2);
       ctx.fill();
+    }
 
-      // Head
-      ctx.beginPath();
-      ctx.arc(x, y - 5, 28, 0, Math.PI * 2);
-      ctx.fill();
+    // Front legs
+    ctx.fillStyle = catColor;
+    ctx.beginPath();
+    ctx.ellipse(-20, 30, 8, 15, -0.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(20, 30, 8, 15, 0.2, 0, Math.PI * 2);
+    ctx.fill();
 
-      // Ears
+    // Paws (white for Aliska)
+    if (!isMiuska) {
+      ctx.fillStyle = "#f5f5f5";
       ctx.beginPath();
-      ctx.moveTo(x - 20, y - 25);
-      ctx.lineTo(x - 12, y - 45);
-      ctx.lineTo(x - 2, y - 25);
+      ctx.ellipse(-20, 42, 6, 4, 0, 0, Math.PI * 2);
       ctx.fill();
       ctx.beginPath();
-      ctx.moveTo(x + 20, y - 25);
-      ctx.lineTo(x + 12, y - 45);
-      ctx.lineTo(x + 2, y - 25);
+      ctx.ellipse(20, 42, 6, 4, 0, 0, Math.PI * 2);
       ctx.fill();
+    }
 
-      // Eyes - yellow
-      ctx.fillStyle = "#FFD700";
-      ctx.beginPath();
-      ctx.ellipse(x - 10, y - 8, 6, 8, 0, 0, Math.PI * 2);
-      ctx.ellipse(x + 10, y - 8, 6, 8, 0, 0, Math.PI * 2);
-      ctx.fill();
+    // Head
+    ctx.fillStyle = catColor;
+    ctx.beginPath();
+    ctx.ellipse(0, -25, 25, 22, 0, 0, Math.PI * 2);
+    ctx.fill();
 
-      // Pupils
-      ctx.fillStyle = "#000";
-      ctx.beginPath();
-      ctx.ellipse(x - 10, y - 8, 2, 5, 0, 0, Math.PI * 2);
-      ctx.ellipse(x + 10, y - 8, 2, 5, 0, 0, Math.PI * 2);
-      ctx.fill();
+    // Ears
+    ctx.beginPath();
+    ctx.moveTo(-20, -40);
+    ctx.lineTo(-12, -55);
+    ctx.lineTo(-5, -38);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(20, -40);
+    ctx.lineTo(12, -55);
+    ctx.lineTo(5, -38);
+    ctx.closePath();
+    ctx.fill();
 
-      // Nose
-      ctx.fillStyle = "#FF69B4";
-      ctx.beginPath();
-      ctx.moveTo(x, y + 2);
-      ctx.lineTo(x - 4, y + 8);
-      ctx.lineTo(x + 4, y + 8);
-      ctx.fill();
+    // Inner ears
+    ctx.fillStyle = "#FFB6C1";
+    ctx.beginPath();
+    ctx.moveTo(-17, -42);
+    ctx.lineTo(-12, -52);
+    ctx.lineTo(-8, -40);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(17, -42);
+    ctx.lineTo(12, -52);
+    ctx.lineTo(8, -40);
+    ctx.closePath();
+    ctx.fill();
 
-      // Tail
-      ctx.strokeStyle = "#1a1a1a";
-      ctx.lineWidth = 8;
-      ctx.lineCap = "round";
+    // Face markings for Aliska
+    if (!isMiuska) {
+      ctx.fillStyle = "#f5f5f5";
       ctx.beginPath();
-      ctx.moveTo(x + 30, y + 35);
-      ctx.quadraticCurveTo(x + 50, y + 20, x + 55, y + 5);
+      ctx.ellipse(0, -20, 12, 10, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Eyes
+    const eyeY = -28;
+    const eyeSpacing = 12;
+
+    // Eye whites
+    ctx.fillStyle = "#FFFFFF";
+    ctx.beginPath();
+    ctx.ellipse(-eyeSpacing, eyeY, 8, 9, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(eyeSpacing, eyeY, 8, 9, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Irises
+    ctx.fillStyle = eyeColor;
+    ctx.beginPath();
+    ctx.ellipse(-eyeSpacing, eyeY, 5, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(eyeSpacing, eyeY, 5, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Pupils
+    ctx.fillStyle = "#000000";
+    ctx.beginPath();
+    ctx.ellipse(-eyeSpacing, eyeY, 2, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(eyeSpacing, eyeY, 2, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Eye shine
+    ctx.fillStyle = "#FFFFFF";
+    ctx.beginPath();
+    ctx.arc(-eyeSpacing - 1, eyeY - 2, 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(eyeSpacing - 1, eyeY - 2, 2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Nose
+    ctx.fillStyle = "#FFB6C1";
+    ctx.beginPath();
+    ctx.moveTo(0, -18);
+    ctx.lineTo(-4, -12);
+    ctx.lineTo(4, -12);
+    ctx.closePath();
+    ctx.fill();
+
+    // Mouth
+    ctx.strokeStyle = "#333";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(0, -12);
+    ctx.lineTo(0, -8);
+    ctx.moveTo(-6, -6);
+    ctx.quadraticCurveTo(0, -2, 6, -6);
+    ctx.stroke();
+
+    // Whiskers
+    ctx.strokeStyle = "#666";
+    ctx.lineWidth = 1;
+    for (let i = -1; i <= 1; i++) {
+      ctx.beginPath();
+      ctx.moveTo(-20, -15 + i * 5);
+      ctx.lineTo(-40, -18 + i * 8);
       ctx.stroke();
-
-    } else {
-      // Oreo - black and white cat with green eyes
-      // Body - black back
-      ctx.fillStyle = "#1a1a1a";
       ctx.beginPath();
-      ctx.ellipse(x, y + 25, 40, 32, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      // White belly
-      ctx.fillStyle = "#FFFFFF";
-      ctx.beginPath();
-      ctx.ellipse(x, y + 30, 25, 20, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Head - black
-      ctx.fillStyle = "#1a1a1a";
-      ctx.beginPath();
-      ctx.arc(x, y - 5, 32, 0, Math.PI * 2);
-      ctx.fill();
-
-      // White face patch
-      ctx.fillStyle = "#FFFFFF";
-      ctx.beginPath();
-      ctx.ellipse(x, y + 5, 18, 15, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Ears - black with white inside
-      ctx.fillStyle = "#1a1a1a";
-      ctx.beginPath();
-      ctx.moveTo(x - 22, y - 28);
-      ctx.lineTo(x - 14, y - 52);
-      ctx.lineTo(x - 2, y - 28);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.moveTo(x + 22, y - 28);
-      ctx.lineTo(x + 14, y - 52);
-      ctx.lineTo(x + 2, y - 28);
-      ctx.fill();
-
-      // Inner ears - white
-      ctx.fillStyle = "#FFB6C1";
-      ctx.beginPath();
-      ctx.moveTo(x - 18, y - 30);
-      ctx.lineTo(x - 14, y - 44);
-      ctx.lineTo(x - 6, y - 30);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.moveTo(x + 18, y - 30);
-      ctx.lineTo(x + 14, y - 44);
-      ctx.lineTo(x + 6, y - 30);
-      ctx.fill();
-
-      // Eyes - green
-      ctx.fillStyle = "#32CD32";
-      ctx.beginPath();
-      ctx.ellipse(x - 12, y - 5, 7, 9, 0, 0, Math.PI * 2);
-      ctx.ellipse(x + 12, y - 5, 7, 9, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Pupils
-      ctx.fillStyle = "#000";
-      ctx.beginPath();
-      ctx.ellipse(x - 12, y - 5, 2, 6, 0, 0, Math.PI * 2);
-      ctx.ellipse(x + 12, y - 5, 2, 6, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Nose
-      ctx.fillStyle = "#FF69B4";
-      ctx.beginPath();
-      ctx.moveTo(x, y + 5);
-      ctx.lineTo(x - 5, y + 12);
-      ctx.lineTo(x + 5, y + 12);
-      ctx.fill();
-
-      // Paws - white
-      ctx.fillStyle = "#FFFFFF";
-      ctx.beginPath();
-      ctx.ellipse(x - 25, y + 50, 10, 8, 0, 0, Math.PI * 2);
-      ctx.ellipse(x + 25, y + 50, 10, 8, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Tail - black and white
-      ctx.strokeStyle = "#1a1a1a";
-      ctx.lineWidth = 10;
-      ctx.lineCap = "round";
-      ctx.beginPath();
-      ctx.moveTo(x + 35, y + 40);
-      ctx.quadraticCurveTo(x + 60, y + 25, x + 65, y + 5);
-      ctx.stroke();
-
-      // White tail tip
-      ctx.strokeStyle = "#FFFFFF";
-      ctx.lineWidth = 6;
-      ctx.beginPath();
-      ctx.moveTo(x + 58, y + 12);
-      ctx.quadraticCurveTo(x + 62, y + 8, x + 65, y + 5);
+      ctx.moveTo(20, -15 + i * 5);
+      ctx.lineTo(40, -18 + i * 8);
       ctx.stroke();
     }
 
@@ -485,9 +515,14 @@ export default function CatSkyWonders() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    let animationId: number = 0;
+    let lastTime = 0;
+    let caughtCountUpdate = 0;
 
-    const gameLoop = () => {
+    const gameLoop = (timestamp: number) => {
+      const deltaTime = timestamp - lastTime;
+      lastTime = timestamp;
+      const time = timestamp / 1000;
+
       // Clear canvas
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -509,14 +544,11 @@ export default function CatSkyWonders() {
       ctx.shadowBlur = 0;
 
       // Update and draw clouds
-      setClouds((prevClouds) =>
-        prevClouds.map((cloud) => ({
-          ...cloud,
-          x: cloud.x + cloud.speed > canvas.width ? -cloud.width : cloud.x + cloud.speed,
-        }))
-      );
-
-      clouds.forEach((cloud) => drawCloud(ctx, cloud));
+      cloudsRef.current = cloudsRef.current.map((cloud) => ({
+        ...cloud,
+        x: cloud.x + cloud.speed > canvas.width ? -cloud.width : cloud.x + cloud.speed,
+      }));
+      cloudsRef.current.forEach((cloud) => drawCloud(ctx, cloud));
 
       // Draw ground
       ctx.fillStyle = "#90EE90";
@@ -526,7 +558,7 @@ export default function CatSkyWonders() {
       ctx.strokeStyle = "#228B22";
       ctx.lineWidth = 2;
       for (let i = 0; i < canvas.width; i += 15) {
-        const height = 10 + Math.random() * 15;
+        const height = 10 + ((i * 7) % 15);
         ctx.beginPath();
         ctx.moveTo(i, canvas.height - 80);
         ctx.lineTo(i + 3, canvas.height - 80 - height);
@@ -569,78 +601,67 @@ export default function CatSkyWonders() {
         ctx.fill();
       });
 
-      // Update and draw falling items
-      setItems((prevItems) => {
-        const newItems: FallingItem[] = [];
+      // Update falling items
+      const canvasHeight = canvas.height;
+      itemsRef.current = itemsRef.current.filter((item) => {
+        if (item.caught || item.y > canvasHeight + 50) return false;
 
-        prevItems.forEach((item) => {
-          if (item.caught || item.y > canvas.height + 50) return;
+        // Update position
+        item.y += item.speed;
+        item.x += Math.sin(item.wobble) * 1.5;
+        item.wobble += item.wobbleSpeed;
+        item.rotation += item.rotationSpeed;
 
-          // Update position
-          item.y += item.speed;
-          item.x += Math.sin(item.wobble) * 1.5;
-          item.wobble += item.wobbleSpeed;
-          item.rotation += item.rotationSpeed;
+        // Check if cats can catch
+        catsRef.current.forEach((cat) => {
+          const dx = Math.abs(cat.x - item.x);
+          const dy = Math.abs(cat.baseY - cat.jumpHeight - item.y);
 
-          // Check if cats can catch
-          setCats((prevCats) => {
-            const updatedCats = prevCats.map((cat) => {
-              const dx = Math.abs(cat.x - item.x);
-              const dy = Math.abs(cat.baseY - cat.jumpHeight - item.y);
-
-              if (dx < 50 && dy < 60 && !item.caught) {
-                item.caught = true;
-                playCatchSound();
-                setCaughtCount((c) => c + 1);
-              }
-              return cat;
-            });
-            return updatedCats;
-          });
-
-          if (!item.caught) {
-            newItems.push(item);
+          if (dx < 50 && dy < 60 && !item.caught) {
+            item.caught = true;
+            playCatchSound();
+            caughtCountRef.current++;
+            caughtCountUpdate++;
           }
         });
 
-        // Draw items
-        newItems.forEach((item) => drawItem(ctx, item));
-
-        return newItems;
+        return !item.caught;
       });
 
-      // Update and draw cats
-      setCats((prevCats) =>
-        prevCats.map((cat) => {
-          let newJumpHeight = cat.jumpHeight;
-          let newJumpPhase = cat.jumpPhase;
-          let newX = cat.x;
+      // Draw items
+      itemsRef.current.forEach((item) => drawItem(ctx, item));
 
-          if (cat.jumping) {
-            // Jumping animation
-            newJumpPhase += 0.15;
-            newJumpHeight = Math.abs(Math.sin(newJumpPhase)) * 80;
+      // Update cats
+      catsRef.current = catsRef.current.map((cat) => {
+        let newJumpHeight = cat.jumpHeight;
+        let newJumpPhase = cat.jumpPhase;
+        let newX = cat.x;
 
-            // Move toward target
-            if (cat.targetX !== null) {
-              const dx = cat.targetX - cat.x;
-              newX = cat.x + dx * 0.02;
-            }
-          } else {
-            // Settle down
-            newJumpHeight = Math.max(0, newJumpHeight - 5);
+        if (cat.jumping) {
+          // Jumping animation
+          newJumpPhase += 0.1;
+          newJumpHeight = Math.abs(Math.sin(newJumpPhase)) * 80;
+
+          // Move toward target
+          if (cat.targetX !== null) {
+            const dx = cat.targetX - cat.x;
+            newX = cat.x + dx * 0.02;
           }
+        } else {
+          // Settle down
+          newJumpHeight = Math.max(0, newJumpHeight - 5);
+        }
 
-          return {
-            ...cat,
-            x: newX,
-            jumpHeight: newJumpHeight,
-            jumpPhase: newJumpPhase,
-          };
-        })
-      );
+        return {
+          ...cat,
+          x: newX,
+          jumpHeight: newJumpHeight,
+          jumpPhase: newJumpPhase,
+        };
+      });
 
-      cats.forEach((cat) => drawCat(ctx, cat));
+      // Draw cats
+      catsRef.current.forEach((cat) => drawCat(ctx, cat, time));
 
       // Draw UI
       ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
@@ -651,10 +672,10 @@ export default function CatSkyWonders() {
 
       ctx.fillStyle = "#333";
       ctx.font = "bold 16px Arial";
-      ctx.fillText(`✨ Поймано: ${caughtCount}`, 25, 35);
+      ctx.fillText(`✨ Поймано: ${caughtCountRef.current}`, 25, 35);
 
       // Instructions
-      if (!isRaining) {
+      if (!isRainingRef.current) {
         ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
         ctx.fillRect(canvas.width / 2 - 150, canvas.height / 2 - 30, 300, 60);
         ctx.strokeStyle = "#4ECDC4";
@@ -668,18 +689,23 @@ export default function CatSkyWonders() {
         ctx.textAlign = "left";
       }
 
-      animationId = requestAnimationFrame(gameLoop);
+      // Update UI state periodically
+      if (caughtCountUpdate > 0) {
+        setCaughtCount(caughtCountRef.current);
+        caughtCountUpdate = 0;
+      }
+
+      animationRef.current = requestAnimationFrame(gameLoop);
     };
 
-    gameLoop();
-    animationRef.current = animationId;
+    animationRef.current = requestAnimationFrame(gameLoop);
 
     return () => {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [cats, clouds, isRaining, items, caughtCount, drawCat, drawCloud, drawItem, playCatchSound]);
+  }, [drawCat, drawCloud, drawItem, playCatchSound]);
 
   // Handle keyboard input
   useEffect(() => {
@@ -710,7 +736,7 @@ export default function CatSkyWonders() {
         Нажми <kbd className="px-2 py-1 bg-white/20 rounded">Пробел</kbd> или кликни, чтобы пошёл волшебный дождь!
       </p>
       <p className="text-white/80 mt-2 text-sm">
-        Смотри, как коты прыгают и ловят падающие чудеса! 🐱
+        Смотри, как Миуска и Алиска прыгают и ловят падающие чудеса! 🐱
       </p>
     </div>
   );
