@@ -17,6 +17,7 @@ A collection of fun mini-games featuring two adorable cats (Midnight and Oreo). 
 - [x] Cat Acrobatics Game implementation
 - [x] Main menu with game selection
 - [x] Cat Music Band game implementation
+- [x] Hidden Toys game implementation
 
 ## Current Structure
 
@@ -27,8 +28,10 @@ A collection of fun mini-games featuring two adorable cats (Midnight and Oreo). 
 | `src/app/globals.css` | Global styles | ✅ Ready |
 | `src/app/games/acrobatics/page.tsx` | Acrobatics game route | ✅ Complete |
 | `src/app/games/music-band/page.tsx` | Music band game route | ✅ Complete |
+| `src/app/games/hidden-toys/page.tsx` | Hidden toys game route | ✅ Complete |
 | `src/components/CatGame.tsx` | Acrobatics game component | ✅ Complete |
 | `src/components/CatMusicBand.tsx` | Music band game component | ✅ Complete |
+| `src/components/CatHiddenToys.tsx` | Hidden toys game component | ✅ Complete |
 | `.kilocode/` | AI context & recipes | ✅ Ready |
 
 ## Game Collection
@@ -50,15 +53,23 @@ A collection of fun mini-games featuring two adorable cats (Midnight and Oreo). 
 - **Visual Effects**: Floating music notes, sound waves, instrument animations
 - **Interactions**: Press Space or click to start a jam session
 
+### Game 3: Hidden Toys (`/games/hidden-toys`)
+- **Room Setting**: Cozy room with window, wallpaper, and wooden floor
+- **5 Hiding Spots**: Pillow, Box, Curtain, Basket, Blanket
+- **6 Toy Types**: Ball, Yarn, Fish, Mouse, Feather, Star
+- **Discovery Mechanic**: Cats find hidden toys with animations and sounds
+- **Visual Effects**: Expanding circles, sparkles, bouncing toys
+- **Interactions**: Press Space or click to make cats discover toys
+
 ## Cat Characters
 
-Both games feature the same two cats:
+All games feature the same two cats:
 - **Midnight**: Medium-sized, completely black with yellow eyes
 - **Oreo**: Large-sized, black back with white belly, black-white paws and face, green eyes
 
 ## Current Focus
 
-The game collection is complete with two mini-games. Future enhancements could include:
+The game collection is complete with three mini-games. Future enhancements could include:
 - More mini-games
 - Score tracking across games
 - Sound settings
@@ -126,3 +137,4 @@ export async function GET() {
 | Initial | Template created with base setup |
 | 2026-02-14 | Added 2D Cat Acrobatics game with two cats and 8 tricks |
 | 2026-02-14 | Added main menu and Cat Music Band game with 8 instruments |
+| 2026-02-14 | Added Hidden Toys game with 5 hiding spots and 6 toy types |

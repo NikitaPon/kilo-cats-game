@@ -17,6 +17,14 @@ const games = [
     color: "from-blue-500 to-cyan-500",
     href: "/games/music-band",
   },
+  {
+    id: "hidden-toys",
+    title: "Hidden Toys",
+    description: "Help the cats find hidden toys around the room!",
+    emoji: "🎁",
+    color: "from-amber-500 to-orange-500",
+    href: "/games/hidden-toys",
+  },
 ];
 
 export default function Home() {
