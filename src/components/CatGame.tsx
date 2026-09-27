@@ -4,6 +4,7 @@ import { Fragment, useEffect, useRef, useState, useCallback, useMemo } from "rea
 
 import { CAT_COLORS, CAT_IDS, catName, drawCat as drawCatSprite, drawCatBalloon, getCatPreset } from "@/characters";
 import type { CatActor, CatId } from "@/characters";
+import { getAudioContext } from "@/lib/audio";
 
 interface Cat extends CatActor {
   baseY: number;
@@ -36,16 +37,6 @@ const STAGE_MARKS: Record<CatId, { x: number; y: number }> = {
 
 /** The full cast that performs on this stage. */
 const CAST = CAT_IDS;
-
-// Audio context for generating sounds
-let audioContext: AudioContext | null = null;
-
-const getAudioContext = () => {
-  if (!audioContext) {
-    audioContext = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
-  }
-  return audioContext;
-};
 
 // Play trick-specific sounds
 const playTrickSound = (type: Trick["sound"]) => {

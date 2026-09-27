@@ -4,6 +4,7 @@ import { Fragment, useEffect, useRef, useState, useCallback, useMemo } from "rea
 
 import { CAT_IDS, CAT_MOTION, catName, drawCat as drawCatSprite, getCatPreset } from "@/characters";
 import type { CatActor, CatId } from "@/characters";
+import { getAudioContext } from "@/lib/audio";
 
 interface Cat extends CatActor {
   rotation: number;
@@ -64,16 +65,6 @@ const STAGE_MARKS: Record<CatId, { x: number; y: number }> = {
 };
 
 const CAST = CAT_IDS;
-
-// Audio context for generating sounds
-let audioContext: AudioContext | null = null;
-
-const getAudioContext = () => {
-  if (!audioContext) {
-    audioContext = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
-  }
-  return audioContext;
-};
 
 const playSound = (type: string, volume: number = 0.3) => {
   try {

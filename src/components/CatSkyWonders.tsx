@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { castNames, drawCat as drawCatSprite, getCatPreset } from "@/characters";
 import type { CatActor } from "@/characters";
+import { getAudioContext } from "@/lib/audio";
 
 // Types
 interface FallingItem {
@@ -65,7 +66,6 @@ const INITIAL_CLOUDS: Cloud[] = [
 export default function CatSkyWonders() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number | null>(null);
-  const audioContextRef = useRef<AudioContext | null>(null);
   
   // Use refs for game state to avoid re-renders during animation
   const itemsRef = useRef<FallingItem[]>([]);
@@ -82,14 +82,6 @@ export default function CatSkyWonders() {
   // State for UI updates only
   const [caughtCount, setCaughtCount] = useState(0);
   const [isRaining, setIsRaining] = useState(false);
-
-  // Initialize audio context
-  const getAudioContext = useCallback(() => {
-    if (!audioContextRef.current) {
-      audioContextRef.current = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
-    }
-    return audioContextRef.current;
-  }, []);
 
   // Play magical sound
   const playMagicSound = useCallback(() => {
@@ -114,7 +106,7 @@ export default function CatSkyWonders() {
     } catch {
       // Audio not available
     }
-  }, [getAudioContext]);
+  }, []);
 
   // Play catch sound
   const playCatchSound = useCallback(() => {
@@ -138,7 +130,7 @@ export default function CatSkyWonders() {
     } catch {
       // Audio not available
     }
-  }, [getAudioContext]);
+  }, []);
 
   // Start the magical rain
   const startMagicRain = useCallback(() => {

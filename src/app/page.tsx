@@ -35,6 +35,14 @@ const games = [
     color: "from-sky-400 to-purple-500",
     href: "/games/sky-wonders",
   },
+  {
+    id: "fishing",
+    title: "Кошачья Рыбалка",
+    description: "Ловите редкую рыбу и ставьте рекорды!",
+    emoji: "🎣",
+    color: "from-teal-400 to-cyan-500",
+    href: "/games/fishing",
+  },
 ];
 
 export default function Home() {

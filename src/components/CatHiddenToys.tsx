@@ -2,8 +2,9 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 
-import { catName, drawCat as drawCatSprite, getCatPreset } from "@/characters";
+import { CAT_IDS, catName, drawCat as drawCatSprite, getCatPreset } from "@/characters";
 import type { CatActor } from "@/characters";
+import { getAudioContext } from "@/lib/audio";
 
 // Types
 interface HidingSpot {
@@ -56,7 +57,6 @@ const TOY_TYPES: { type: Toy["type"]; name: string; color: string; emoji: string
 export default function CatHiddenToys() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number>(0);
-  const audioContextRef = useRef<AudioContext | null>(null);
 
   const [toys, setToys] = useState<Toy[]>([]);
   const [cats, setCats] = useState<Cat[]>([
@@ -73,14 +73,6 @@ export default function CatHiddenToys() {
   }>({ active: false, x: 0, y: 0, progress: 0, toy: null });
 
   const [message, setMessage] = useState("Нажми Пробел — кошки найдут игрушки!");
-
-  // Initialize audio context
-  const getAudioContext = useCallback(() => {
-    if (!audioContextRef.current) {
-      audioContextRef.current = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
-    }
-    return audioContextRef.current;
-  }, []);
 
   // Play discovery sound
   const playDiscoverySound = useCallback((toyType: Toy["type"]) => {
@@ -122,7 +114,7 @@ export default function CatHiddenToys() {
 
     oscillator.start(ctx.currentTime);
     oscillator.stop(ctx.currentTime + 0.6);
-  }, [getAudioContext]);
+  }, []);
 
   // Draw the room background
   const drawRoom = useCallback((ctx: CanvasRenderingContext2D, width: number, height: number) => {
@@ -721,6 +713,16 @@ export default function CatHiddenToys() {
         <span>🎮 Нажми <kbd className="px-2 py-1 bg-gray-200 rounded">Пробел</kbd> или кликни</span>
         <span>🎯 Найдено игрушек: {toys.length}/{HIDING_SPOTS.length}</span>
       </div>
+
+      <p className="text-sm text-gray-500">
+        Ищут:{" "}
+        {CAT_IDS.map((id, i) => (
+          <span key={id}>
+            {i > 0 && ", "}
+            <span className="font-semibold text-gray-700">{catName(id)}</span>
+          </span>
+        ))}
+      </p>
 
       {/* Toy collection display */}
       {toys.length > 0 && (

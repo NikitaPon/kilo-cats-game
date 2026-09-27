@@ -16,14 +16,17 @@ src/
 │   ├── cats.ts                 # CAT_PRESETS — the cast
 │   ├── draw-cat.ts             # drawCat() / drawCatBalloon() — the only renderer
 │   └── index.ts                # Public barrel: import from "@/characters"
+├── lib/                        # Cross-game utilities
+│   └── audio.ts                # Shared AudioContext + playTone/playSequence
 └── components/                 # One self-contained component per game
     ├── CatGame.tsx             # /games/acrobatics
     ├── CatMusicBand.tsx        # /games/music-band
     ├── CatHiddenToys.tsx       # /games/hidden-toys
-    └── CatSkyWonders.tsx       # /games/sky-wonders
+    ├── CatSkyWonders.tsx       # /games/sky-wonders
+    └── CatFishing.tsx          # /games/fishing
 ```
 
-Layers, from the bottom up: **presets & tokens** → **renderer** → **game components** → **route wrappers**.
+Layers, from the bottom up: **presets & tokens** → **renderer** → **shared utils** → **game components** → **route wrappers**.
 
 ## Shared Character System
 
@@ -119,7 +122,15 @@ is reserved for values the UI renders.
 Route wrappers and pages are Server Components; only game components carry
 `"use client"`.
 
-### 4. Layout Pattern
+### 4. Shared Audio
+
+`src/lib/audio.ts` owns the single `AudioContext` (browsers cap how many a page
+may hold) plus `playTone` / `playSequence` for enveloped oscillator sounds.
+Games that need their own richer synth still call `getAudioContext()` and wrap
+their work in `try { ... } catch { /* audio unavailable */ }`. Never construct an
+`AudioContext` inside a game component.
+
+### 5. Layout Pattern
 
 Layouts wrap pages and can be nested: `src/app/layout.tsx` is the root layout,
 adding a route group only needs a nested `layout.tsx`.

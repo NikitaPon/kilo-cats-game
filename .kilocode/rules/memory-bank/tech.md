@@ -97,6 +97,7 @@ bun typecheck      # Run TypeScript type checking
     │   ├── favicon.ico     # Site icon
     │   └── games/          # One route wrapper per game
     ├── characters/         # Shared cat design system (renderer + presets + tokens)
+    ├── lib/                # Cross-game utilities (WebAudio)
     └── components/         # One component per mini-game
 ```
 

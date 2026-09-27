@@ -39,6 +39,9 @@ A collection of fun mini-games featuring two adorable cats (Miuska and Aliska). 
 | `src/components/CatHiddenToys.tsx` | Hidden toys game component | ✅ Complete |
 | `src/components/CatSkyWonders.tsx` | Sky wonders game component | ✅ Complete |
 | `src/characters/` | **Shared cat design system** (renderer, palette, presets) | ✅ Complete |
+| `src/lib/audio.ts` | **Shared WebAudio** (AudioContext singleton, `playTone`) | ✅ Complete |
+| `src/components/CatFishing.tsx` | Fishing game component | ✅ Complete |
+| `src/app/games/fishing/page.tsx` | Fishing game route | ✅ Complete |
 | `.kilocode/` | AI context & recipes | ✅ Ready |
 
 ## Game Collection
@@ -77,6 +80,15 @@ A collection of fun mini-games featuring two adorable cats (Miuska and Aliska). 
 - **Interactions**: Press Space or click to trigger magic rain
 - **Calming Experience**: Peaceful and magical atmosphere
 
+### Game 5: Cat Fishing (`/games/fishing`)
+- **First skill-based game** — the other four are "press Space and watch"
+- **Timing Bar**: A marker sweeps a bar; hook while it's inside the green bite window
+- **4 Fish Species**: Карась (10), Окунь (25), Щука (50), Золотая рыбка (100) — rarer means a narrower, faster window
+- **Phases**: `idle → casting → waiting → biting → result`, looping automatically
+- **Score & Streak**: Points per fish × a streak multiplier (up to ×5); best score persists in `localStorage`
+- **Rotating Angler**: A different cat holds the rod each cast; it perks up as the bite approaches
+- **Scene**: Pond with drifting clouds, reeds, ambient fish, the hooked fish swimming in
+
 ## Cat Characters
 
 All games feature the same three cats, defined once in `src/characters/cats.ts` and
@@ -96,11 +108,10 @@ System" for the full contract.
 
 ## Current Focus
 
-The game collection is complete with four mini-games. Future enhancements could include:
-- More mini-games
-- Score tracking across games
-- Sound settings
-- Additional cat characters (just add a preset to `CAT_PRESETS`)
+The game collection has five mini-games, one of which is skill-based. Ideas that
+would add the most: a game where the player *steers* a cat (mouse/arrows), a
+platformer, and a rhythm game reusing the Music Band synth. Also still missing:
+scores across games and sound settings. Adding a cat is now just a preset.
 
 ## Quick Start Guide
 
@@ -182,3 +193,4 @@ export async function GET() {
 | 2026-02-14 | Unified cat design in CatGame.tsx and CatMusicBand.tsx based on CatSkyWonders.tsx |
 | 2026-09-27 | Refactored architecture: cats moved to `src/characters/` (shared renderer `drawCat`, palette `CAT_COLORS`, motion `CAT_MOTION`, presets `CAT_PRESETS`). Removed ~4 copies of the 190-line sprite from the games. Fixed legacy Миднайт/Орео names. Verified all 26 render paths produce identical canvas geometry to the originals |
 | 2026-09-27 | Added third cat **Вики** (grey kitten, brown eyes, scale 0.75) to all four games. `CatGame`/`CatMusicBand` switched from two hardcoded cat refs to a `catsRef` array + `STAGE_MARKS`; tricks now receive `cats: Cat[]` so all three cats perform. Fixed `CatHiddenToys` seeker hardcoded to `Math.random() > 0.5 ? 0 : 1`, which excluded the third cat. Added `castNames()` for prose |
+| 2026-09-27 | Added 5th mini-game **Кошачья Рыбалка** (`/games/fishing`) — the first skill/timing game with a score, a streak multiplier and a persisted best. Extracted the AudioContext that was copy-pasted in all 4 games into `src/lib/audio.ts` (`getAudioContext`, `playTone`, `playSequence`). Added a cast line to `CatHiddenToys`, which was the only game whose UI named no cats |
