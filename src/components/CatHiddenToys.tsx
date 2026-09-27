@@ -62,6 +62,7 @@ export default function CatHiddenToys() {
   const [cats, setCats] = useState<Cat[]>([
     { id: "Miuska", x: 200, y: 400, targetX: 200, targetY: 400, isMoving: false, isDiscovering: false, discoveredToy: null },
     { id: "Aliska", x: 600, y: 420, targetX: 600, targetY: 420, isMoving: false, isDiscovering: false, discoveredToy: null },
+    { id: "Viki", x: 400, y: 425, targetX: 400, targetY: 425, isMoving: false, isDiscovering: false, discoveredToy: null },
   ]);
   const [discoveryAnimation, setDiscoveryAnimation] = useState<{
     active: boolean;
@@ -644,7 +645,7 @@ export default function CatHiddenToys() {
     };
 
     // Pick a random cat to discover
-    const randomCatIndex = Math.random() > 0.5 ? 0 : 1;
+    const randomCatIndex = Math.floor(Math.random() * cats.length);
 
     setCats((prevCats) =>
       prevCats.map((cat, index) => {

@@ -1,5 +1,5 @@
 export { CAT_COLORS, CAT_MOTION } from "./cat-design";
-export { CAT_IDS, CAT_PRESETS, catName, getCatPreset } from "./cats";
+export { CAT_IDS, CAT_PRESETS, castNames, catName, getCatPreset } from "./cats";
 export { drawCat, drawCatBalloon } from "./draw-cat";
 export type {
   CatActor,

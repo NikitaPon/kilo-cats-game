@@ -6,7 +6,7 @@
  * rendered by `drawCat`, so a cat looks identical in every mini-game.
  */
 
-export type CatId = "Miuska" | "Aliska";
+export type CatId = "Miuska" | "Aliska" | "Viki";
 
 /** Colors a single cat is drawn with. */
 export interface CatColors {

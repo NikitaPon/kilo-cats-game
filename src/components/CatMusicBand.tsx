@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import { Fragment, useEffect, useRef, useState, useCallback, useMemo } from "react";
 
-import { CAT_MOTION, catName, drawCat as drawCatSprite, getCatPreset } from "@/characters";
-import type { CatActor } from "@/characters";
+import { CAT_IDS, CAT_MOTION, catName, drawCat as drawCatSprite, getCatPreset } from "@/characters";
+import type { CatActor, CatId } from "@/characters";
 
 interface Cat extends CatActor {
   rotation: number;
@@ -55,6 +55,15 @@ const INSTRUMENTS: Omit<Instrument, "x" | "y" | "width" | "height">[] = [
 ];
 
 const NOTE_EMOJIS = ["🎵", "🎶", "🎼", "♪", "♫", "✨"];
+
+/** Stage marks per cat, relative to the canvas centre / bottom edge. */
+const STAGE_MARKS: Record<CatId, { x: number; y: number }> = {
+  Miuska: { x: -140, y: -150 },
+  Aliska: { x: 140, y: -160 },
+  Viki: { x: 0, y: -137 },
+};
+
+const CAST = CAT_IDS;
 
 // Audio context for generating sounds
 let audioContext: AudioContext | null = null;
@@ -112,27 +121,18 @@ export default function CatMusicBand() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentInstruments, setCurrentInstruments] = useState<string[]>([]);
   
-  const cat1Ref = useRef<Cat>({
-    x: 0,
-    y: 0,
-    id: "Miuska",
-    rotation: 0,
-    scaleX: 1,
-    scaleY: 1,
-    isPlaying: false,
-    playProgress: 0,
-  });
-
-  const cat2Ref = useRef<Cat>({
-    x: 0,
-    y: 0,
-    id: "Aliska",
-    rotation: 0,
-    scaleX: 1,
-    scaleY: 1,
-    isPlaying: false,
-    playProgress: 0,
-  });
+  const catsRef = useRef<Cat[]>(
+    CAT_IDS.map((id) => ({
+      x: 0,
+      y: 0,
+      id,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      isPlaying: false,
+      playProgress: 0,
+    }))
+  );
 
   const instrumentsRef = useRef<Instrument[]>([]);
   const notesRef = useRef<MusicNote[]>([]);
@@ -368,10 +368,11 @@ export default function CatMusicBand() {
       canvas.height = 500;
       
       // Reset cat positions
-      cat1Ref.current.x = canvas.width / 2 - 120;
-      cat1Ref.current.y = canvas.height - 150;
-      cat2Ref.current.x = canvas.width / 2 + 80;
-      cat2Ref.current.y = canvas.height - 160;
+      catsRef.current.forEach((cat) => {
+        const mark = STAGE_MARKS[cat.id];
+        cat.x = canvas.width / 2 + mark.x;
+        cat.y = canvas.height + mark.y;
+      });
     };
     resize();
     window.addEventListener("resize", resize);
@@ -383,18 +384,17 @@ export default function CatMusicBand() {
       drawBackground(ctx, canvas.width, canvas.height, time);
 
       const state = stateRef.current;
-      const cat1 = cat1Ref.current;
-      const cat2 = cat2Ref.current;
+      const cats = catsRef.current;
 
       if (isPlaying) {
         const elapsed = time - state.playStartTime;
         const duration = 2000;
         const progress = Math.min(elapsed / duration, 1);
         
-        cat1.isPlaying = true;
-        cat2.isPlaying = true;
-        cat1.playProgress = progress;
-        cat2.playProgress = progress;
+        cats.forEach((cat) => {
+          cat.isPlaying = true;
+          cat.playProgress = progress;
+        });
         
         // Generate notes and waves
         if (Math.random() < 0.1) {
@@ -422,16 +422,18 @@ export default function CatMusicBand() {
         if (progress >= 1) {
           setIsPlaying(false);
           setCurrentInstruments([]);
-          cat1.isPlaying = false;
-          cat2.isPlaying = false;
+          cats.forEach((cat) => {
+            cat.isPlaying = false;
+          });
           instrumentsRef.current = [];
         }
       } else {
         // Idle animation
         state.idleTime = time;
         state.breathePhase = Math.sin(time * 0.002) * 0.03;
-        cat1.scaleY = 1 + state.breathePhase;
-        cat2.scaleY = 1 + state.breathePhase * 0.8;
+        cats.forEach((cat, i) => {
+          cat.scaleY = 1 + state.breathePhase * (1 - i * 0.2);
+        });
 
         // Occasional blinking
         state.blinkTimer += 16;
@@ -465,12 +467,11 @@ export default function CatMusicBand() {
 
       // Draw instruments
       instrumentsRef.current.forEach((inst) => {
-        drawInstrument(ctx, inst, isPlaying, cat1.playProgress);
+        drawInstrument(ctx, inst, isPlaying, cats[0].playProgress);
       });
 
       // Draw cats
-      drawCat(ctx, cat1, state.isBlinking, time / 1000);
-      drawCat(ctx, cat2, state.isBlinking, time / 1000);
+      cats.forEach((cat) => drawCat(ctx, cat, state.isBlinking, time / 1000));
 
       // Draw notes
       drawNotes(ctx, notesRef.current);
@@ -537,8 +538,13 @@ export default function CatMusicBand() {
       <div className="mt-6 text-center text-amber-200 text-sm">
         <p>
           Наши музыканты:{" "}
-          <span className="font-semibold text-white">{catName("Miuska")}</span> и{" "}
-          <span className="font-semibold text-white">{catName("Aliska")}</span> — обожают играть вместе!
+          {CAST.map((id, i) => (
+            <Fragment key={id}>
+              {i > 0 && (i === CAST.length - 1 ? " и " : ", ")}
+              <span className="font-semibold text-white">{catName(id)}</span>
+            </Fragment>
+          ))}{" "}
+          — обожают играть вместе!
         </p>
       </div>
     </div>

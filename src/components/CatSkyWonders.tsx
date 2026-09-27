@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { catName, drawCat as drawCatSprite, getCatPreset } from "@/characters";
+import { castNames, drawCat as drawCatSprite, getCatPreset } from "@/characters";
 import type { CatActor } from "@/characters";
 
 // Types
@@ -72,6 +72,7 @@ export default function CatSkyWonders() {
   const catsRef = useRef<Cat[]>([
     { x: 250, y: 420, baseY: 420, jumping: false, jumpHeight: 0, jumpPhase: 0, targetX: null, id: "Miuska" },
     { x: 550, y: 430, baseY: 430, jumping: false, jumpHeight: 0, jumpPhase: 0, targetX: null, id: "Aliska" },
+    { x: 400, y: 425, baseY: 425, jumping: false, jumpHeight: 0, jumpPhase: 0, targetX: null, id: "Viki" },
   ]);
   const cloudsRef = useRef<Cloud[]>([...INITIAL_CLOUDS]);
   const caughtCountRef = useRef(0);
@@ -176,12 +177,12 @@ export default function CatSkyWonders() {
 
     itemsRef.current = newItems;
 
-    // Make cats start jumping
-    catsRef.current = catsRef.current.map((cat) => ({
+    // Make cats start jumping, each aiming for its own stretch of the field
+    catsRef.current = catsRef.current.map((cat, i) => ({
       ...cat,
       jumping: true,
       jumpPhase: Math.random() * Math.PI * 2,
-      targetX: 200 + Math.random() * 400,
+      targetX: 120 + i * 200 + Math.random() * 140,
     }));
 
     // Stop after a few seconds
@@ -555,7 +556,7 @@ export default function CatSkyWonders() {
         Нажми <kbd className="px-2 py-1 bg-white/20 rounded">Пробел</kbd> или кликни, чтобы пошёл волшебный дождь!
       </p>
       <p className="text-white/80 mt-2 text-sm">
-        Смотри, как {catName("Miuska")} и {catName("Aliska")} прыгают и ловят падающие чудеса! 🐱
+        Смотри, как {castNames()} прыгают и ловят падающие чудеса! 🐱
       </p>
     </div>
   );

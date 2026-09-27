@@ -21,6 +21,7 @@ A collection of fun mini-games featuring two adorable cats (Miuska and Aliska). 
 - [x] Sky Wonders game implementation
 - [x] Bug fixes: back button, cat names, Sky Wonders falling items
 - [x] **Character architecture**: extracted all cats into `src/characters/` — one shared renderer, one palette, one set of presets
+- [x] **Third cat "Viki"** (grey kitten) added to all four mini-games
 
 ## Current Structure
 
@@ -78,14 +79,20 @@ A collection of fun mini-games featuring two adorable cats (Miuska and Aliska). 
 
 ## Cat Characters
 
-All games feature the same two cats, defined once in `src/characters/cats.ts` and
+All games feature the same three cats, defined once in `src/characters/cats.ts` and
 drawn by the single shared renderer in `src/characters/draw-cat.ts`:
-- **Miuska (Миуска)**: Medium-sized, completely black with yellow eyes
-- **Aliska (Алиска)**: Large-sized, black back with white belly, black-white paws and face, green eyes
+- **Miuska (Миуска)**: Medium-sized, completely black with yellow eyes (scale 1)
+- **Aliska (Алиска)**: Large-sized, black back with white belly, black-white paws and face, green eyes (scale 1.2)
+- **Viki (Вики)**: Small grey kitten, entirely grey with brown eyes, the smallest of the three (scale 0.75)
+
+Every cat shares the same silhouette; they differ only in `scale`, `colors` and
+`balloonColor`. `markings: null` means a solid single-colour cat (Miuska, Viki);
+`markings: <colour>` adds the white belly, paws and face blaze (Aliska).
 
 **Never hardcode cat colors, proportions or motion constants in a game.** Import
-from `@/characters` and pass a preset plus placement/expression. See
-`architecture.md` → "Shared Character System" for the full contract.
+from `@/characters` and pass a preset plus placement/expression. Use `castNames()`
+for prose that lists the whole cast. See `architecture.md` → "Shared Character
+System" for the full contract.
 
 ## Current Focus
 
@@ -174,3 +181,4 @@ export async function GET() {
 | 2026-02-14 | Unified cat design across all games, fixed "Back to menu" button |
 | 2026-02-14 | Unified cat design in CatGame.tsx and CatMusicBand.tsx based on CatSkyWonders.tsx |
 | 2026-09-27 | Refactored architecture: cats moved to `src/characters/` (shared renderer `drawCat`, palette `CAT_COLORS`, motion `CAT_MOTION`, presets `CAT_PRESETS`). Removed ~4 copies of the 190-line sprite from the games. Fixed legacy Миднайт/Орео names. Verified all 26 render paths produce identical canvas geometry to the originals |
+| 2026-09-27 | Added third cat **Вики** (grey kitten, brown eyes, scale 0.75) to all four games. `CatGame`/`CatMusicBand` switched from two hardcoded cat refs to a `catsRef` array + `STAGE_MARKS`; tricks now receive `cats: Cat[]` so all three cats perform. Fixed `CatHiddenToys` seeker hardcoded to `Math.random() > 0.5 ? 0 : 1`, which excluded the third cat. Added `castNames()` for prose |

@@ -69,18 +69,26 @@ drawCat(ctx, {
    `drawCat` / `drawCatBalloon`.
 3. **No magic motion numbers.** Use `CAT_MOTION.*` (e.g.
    `CAT_MOTION.pawBopRange`) so motion stays consistent across games.
-4. **UI copy uses `catName(id)`**, which returns the Russian display name, so
-   renaming a cat in `cats.ts` updates every game.
+4. **UI copy uses `catName(id)`** (one cat) or `castNames()` (the whole cast, e.g.
+   "Миуска, Алиска и Вики"), so renaming a cat in `cats.ts` updates every game.
 5. **Per-game `Cat` interfaces extend `CatActor`** so `id: CatId` is enforced and
    narrow. Refer to a cat's size through `getCatPreset(cat.id).height` rather
    than storing a copy on the actor.
 6. **Decorations attached to a cat must respect `preset.scale`** — replicate the
    preset scale in any transform you build yourself (see the star in `CatGame.tsx`).
+7. **Hold the cast in an array, not named refs.** Games keep `catsRef`/`useState`
+   arrays of actors and iterate them, rather than `cat1Ref`/`cat2Ref`. Anything
+   that picks "a cat" must derive from `cats.length`, never a hardcoded index.
+8. **Place cats via a `STAGE_MARKS: Record<CatId, { x, y }>`** table rather than
+   inline coordinates. A cat's anchor is its body centre, so ground-align the
+   three by scaling the offset from the feet: `y = floorY - 53 * preset.scale`.
+   That keeps a new cat standing on the same floor as the others.
 
 ### Adding a cat
 
 Add a `CatPreset` to `CAT_PRESETS` (`cats.ts`) and add its id to the `CatId`
-union (`types.ts`). Every game then has it available.
+union (`types.ts`). Then, per game: add a `STAGE_MARKS` entry, add the id to the
+spawn list, and make any per-cat logic iterate the array.
 
 ## Key Design Patterns
 

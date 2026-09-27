@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import { Fragment, useEffect, useRef, useState, useCallback, useMemo } from "react";
 
-import { CAT_COLORS, catName, drawCat as drawCatSprite, drawCatBalloon, getCatPreset } from "@/characters";
-import type { CatActor } from "@/characters";
+import { CAT_COLORS, CAT_IDS, catName, drawCat as drawCatSprite, drawCatBalloon, getCatPreset } from "@/characters";
+import type { CatActor, CatId } from "@/characters";
 
 interface Cat extends CatActor {
   baseY: number;
@@ -24,8 +24,18 @@ interface Trick {
   name: string;
   duration: number;
   sound: "jump" | "spin" | "balloon" | "star" | "stack" | "swim" | "rocket" | "dance";
-  execute: (progress: number, cat1: Cat, cat2: Cat) => void;
+  execute: (progress: number, cats: Cat[]) => void;
 }
+
+/** Stage marks per cat, relative to the canvas centre / bottom edge. */
+const STAGE_MARKS: Record<CatId, { x: number; y: number }> = {
+  Miuska: { x: -170, y: -150 },
+  Aliska: { x: 170, y: -160 },
+  Viki: { x: 0, y: -137 },
+};
+
+/** The full cast that performs on this stage. */
+const CAST = CAT_IDS;
 
 // Audio context for generating sounds
 let audioContext: AudioContext | null = null;
@@ -223,35 +233,22 @@ export default function CatGame() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTrickName, setCurrentTrickName] = useState("");
   
-  const cat1Ref = useRef<Cat>({
-    x: 0,
-    y: 0,
-    baseY: 0,
-    id: "Miuska",
-    rotation: 0,
-    scaleX: 1,
-    scaleY: 1,
-    opacity: 1,
-    isBalloon: false,
-    hasStar: false,
-    starY: 0,
-    starOpacity: 0,
-  });
-
-  const cat2Ref = useRef<Cat>({
-    x: 0,
-    y: 0,
-    baseY: 0,
-    id: "Aliska",
-    rotation: 0,
-    scaleX: 1,
-    scaleY: 1,
-    opacity: 1,
-    isBalloon: false,
-    hasStar: false,
-    starY: 0,
-    starOpacity: 0,
-  });
+  const catsRef = useRef<Cat[]>(
+    CAT_IDS.map((id) => ({
+      x: 0,
+      y: 0,
+      baseY: 0,
+      id,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      opacity: 1,
+      isBalloon: false,
+      hasStar: false,
+      starY: 0,
+      starOpacity: 0,
+    }))
+  );
 
   const trickStateRef = useRef({
     currentTrick: 0,
@@ -268,76 +265,87 @@ export default function CatGame() {
       name: "Двойной прыжок и Дай пять!",
       duration: 2000,
       sound: "jump",
-      execute: (progress, cat1, cat2) => {
+      execute: (progress, [cat1, cat2, cat3]) => {
         // Both cats jump up
         const jumpPhase = Math.sin(progress * Math.PI);
         cat1.y = cat1.baseY - jumpPhase * 150;
         cat2.y = cat2.baseY - jumpPhase * 120;
+        cat3.y = cat3.baseY - jumpPhase * 110;
         
         // Rotate during jump
         cat1.rotation = Math.sin(progress * Math.PI * 2) * 0.3;
         cat2.rotation = -Math.sin(progress * Math.PI * 2) * 0.3;
+        cat3.rotation = Math.sin(progress * Math.PI * 2) * 0.25;
         
         // Stretch effect
         cat1.scaleY = 1 + jumpPhase * 0.2;
         cat2.scaleY = 1 + jumpPhase * 0.15;
+        cat3.scaleY = 1 + jumpPhase * 0.18;
       },
     },
     {
       name: "Сальто-симфония!",
       duration: 2500,
       sound: "spin",
-      execute: (progress, cat1, cat2) => {
+      execute: (progress, [cat1, cat2, cat3]) => {
         // Full rotation somersaults
         cat1.rotation = progress * Math.PI * 4;
         cat2.rotation = -progress * Math.PI * 4;
+        cat3.rotation = progress * Math.PI * 3;
         
         // Bounce up during somersault
         const bounce = Math.abs(Math.sin(progress * Math.PI * 2));
         cat1.y = cat1.baseY - bounce * 100;
         cat2.y = cat2.baseY - bounce * 80;
+        cat3.y = cat3.baseY - bounce * 90;
         
         // Squash and stretch
         cat1.scaleX = 1 + Math.sin(progress * Math.PI * 4) * 0.2;
         cat1.scaleY = 1 - Math.sin(progress * Math.PI * 4) * 0.2;
         cat2.scaleX = 1 + Math.sin(progress * Math.PI * 4 + 0.5) * 0.2;
         cat2.scaleY = 1 - Math.sin(progress * Math.PI * 4 + 0.5) * 0.2;
+        cat3.scaleX = 1 + Math.sin(progress * Math.PI * 3) * 0.2;
+        cat3.scaleY = 1 - Math.sin(progress * Math.PI * 3) * 0.2;
       },
     },
     {
       name: "Превращение в шарики!",
       duration: 3000,
       sound: "balloon",
-      execute: (progress, cat1, cat2) => {
+      execute: (progress, cats) => {
         // Transform into balloons
+        const [cat1, cat2, cat3] = cats;
         if (progress < 0.3) {
           // Inflate
           const inflate = progress / 0.3;
-          cat1.isBalloon = true;
-          cat2.isBalloon = true;
-          cat1.scaleX = 1 + inflate * 0.3;
-          cat1.scaleY = 1 + inflate * 0.5;
-          cat2.scaleX = 1 + inflate * 0.3;
-          cat2.scaleY = 1 + inflate * 0.5;
+          cats.forEach((cat) => {
+            cat.isBalloon = true;
+            cat.scaleX = 1 + inflate * 0.3;
+            cat.scaleY = 1 + inflate * 0.5;
+          });
         } else if (progress < 0.7) {
           // Float around
           const floatProgress = (progress - 0.3) / 0.4;
           cat1.y = cat1.baseY - 100 - Math.sin(floatProgress * Math.PI * 3) * 30;
           cat2.y = cat2.baseY - 80 - Math.sin(floatProgress * Math.PI * 3 + 1) * 30;
+          cat3.y = cat3.baseY - 70 - Math.sin(floatProgress * Math.PI * 3 + 2) * 30;
           cat1.x += Math.sin(floatProgress * Math.PI * 2) * 2;
           cat2.x -= Math.sin(floatProgress * Math.PI * 2) * 2;
+          cat3.x += Math.sin(floatProgress * Math.PI * 2 + 1) * 1.5;
         } else {
           // Deflate back
           const deflate = 1 - (progress - 0.7) / 0.3;
-          cat1.scaleX = 1 + deflate * 0.3;
-          cat1.scaleY = 1 + deflate * 0.5;
-          cat2.scaleX = 1 + deflate * 0.3;
-          cat2.scaleY = 1 + deflate * 0.5;
+          cats.forEach((cat) => {
+            cat.scaleX = 1 + deflate * 0.3;
+            cat.scaleY = 1 + deflate * 0.5;
+          });
           cat1.y = cat1.baseY - deflate * 100;
           cat2.y = cat2.baseY - deflate * 80;
+          cat3.y = cat3.baseY - deflate * 70;
           if (progress > 0.95) {
-            cat1.isBalloon = false;
-            cat2.isBalloon = false;
+            cats.forEach((cat) => {
+              cat.isBalloon = false;
+            });
           }
         }
       },
@@ -346,38 +354,42 @@ export default function CatGame() {
       name: "Ловля звёзд!",
       duration: 2500,
       sound: "star",
-      execute: (progress, cat1, cat2) => {
+      execute: (progress, cats) => {
         // Stars fall and cats catch them
+        const [cat1, cat2, cat3] = cats;
         if (progress < 0.5) {
           // Stars falling
-          cat1.hasStar = true;
-          cat2.hasStar = true;
-          cat1.starY = -50 + progress * 2 * 250;
-          cat2.starY = -50 + progress * 2 * 250;
-          cat1.starOpacity = 1;
-          cat2.starOpacity = 1;
+          cats.forEach((cat) => {
+            cat.hasStar = true;
+            cat.starY = -50 + progress * 2 * 250;
+            cat.starOpacity = 1;
+          });
           
           // Cats reach up
           const reach = Math.sin(progress * Math.PI * 2);
           cat1.y = cat1.baseY - reach * 30;
           cat2.y = cat2.baseY - reach * 25;
+          cat3.y = cat3.baseY - reach * 28;
           cat1.rotation = reach * 0.2;
           cat2.rotation = -reach * 0.2;
+          cat3.rotation = reach * 0.25;
         } else {
           // Caught! Celebrate
           const celebrate = (progress - 0.5) / 0.5;
-          cat1.starY = 0;
-          cat2.starY = 0;
-          cat1.starOpacity = 1 - celebrate;
-          cat2.starOpacity = 1 - celebrate;
+          cats.forEach((cat) => {
+            cat.starY = 0;
+            cat.starOpacity = 1 - celebrate;
+          });
           
           // Happy bounce
           cat1.y = cat1.baseY - Math.abs(Math.sin(celebrate * Math.PI * 3)) * 50;
           cat2.y = cat2.baseY - Math.abs(Math.sin(celebrate * Math.PI * 3 + 0.5)) * 40;
+          cat3.y = cat3.baseY - Math.abs(Math.sin(celebrate * Math.PI * 3 + 1)) * 45;
           
           if (progress > 0.9) {
-            cat1.hasStar = false;
-            cat2.hasStar = false;
+            cats.forEach((cat) => {
+              cat.hasStar = false;
+            });
           }
         }
       },
@@ -386,7 +398,7 @@ export default function CatGame() {
       name: "Кошачья башня!",
       duration: 2000,
       sound: "stack",
-      execute: (progress, cat1, cat2) => {
+      execute: (progress, [cat1, cat2, cat3]) => {
         // One cat jumps on top of the other
         if (progress < 0.4) {
           // Preparation - cats move together
@@ -407,57 +419,72 @@ export default function CatGame() {
           cat1.rotation = off * Math.PI * 2;
           cat2.scaleY = 0.8 + off * 0.2;
         }
+        // The kitten watches the tower eagerly
+        const watch = Math.sin(progress * Math.PI * 3);
+        cat3.rotation = watch * 0.15;
+        cat3.y = cat3.baseY - Math.abs(watch) * 18;
       },
     },
     {
       name: "Синхронное плавание!",
       duration: 2500,
       sound: "swim",
-      execute: (progress, cat1, cat2) => {
+      execute: (progress, [cat1, cat2, cat3]) => {
         // Wave-like swimming motion
         const wave = Math.sin(progress * Math.PI * 4);
         cat1.y = cat1.baseY - 50 + wave * 30;
         cat2.y = cat2.baseY - 40 - wave * 30;
+        cat3.y = cat3.baseY - 30 - wave * 20;
         cat1.rotation = wave * 0.4;
         cat2.rotation = -wave * 0.4;
+        cat3.rotation = -wave * 0.3;
         cat1.x = cat1.x + Math.cos(progress * Math.PI * 2) * 2;
         cat2.x = cat2.x - Math.cos(progress * Math.PI * 2) * 2;
+        cat3.x = cat3.x + Math.cos(progress * Math.PI * 2 + 1) * 1;
         
         // Stretch for swimming effect
         cat1.scaleX = 1 + Math.abs(wave) * 0.1;
         cat2.scaleX = 1 + Math.abs(wave) * 0.1;
+        cat3.scaleX = 1 + Math.abs(wave) * 0.12;
       },
     },
     {
       name: "Ракетный запуск!",
       duration: 2000,
       sound: "rocket",
-      execute: (progress, cat1, cat2) => {
+      execute: (progress, cats) => {
+        const [cat1, cat2, cat3] = cats;
         if (progress < 0.3) {
           // Crouch down
           const crouch = progress / 0.3;
-          cat1.scaleY = 1 - crouch * 0.3;
-          cat2.scaleY = 1 - crouch * 0.3;
-          cat1.y = cat1.baseY + crouch * 20;
-          cat2.y = cat2.baseY + crouch * 20;
+          cats.forEach((cat) => {
+            cat.scaleY = 1 - crouch * 0.3;
+            cat.y = cat.baseY + crouch * 20;
+          });
         } else if (progress < 0.6) {
           // Launch up!
           const launch = (progress - 0.3) / 0.3;
           cat1.scaleY = 1.3;
           cat2.scaleY = 1.3;
+          cat3.scaleY = 1.3;
           cat1.y = cat1.baseY - launch * 200;
           cat2.y = cat2.baseY - launch * 180;
+          cat3.y = cat3.baseY - launch * 210;
           cat1.rotation = launch * 0.3;
           cat2.rotation = -launch * 0.3;
+          cat3.rotation = launch * 0.25;
         } else {
           // Fall back
           const fall = (progress - 0.6) / 0.4;
           cat1.y = cat1.baseY - 200 + fall * 200;
           cat2.y = cat2.baseY - 180 + fall * 180;
+          cat3.y = cat3.baseY - 210 + fall * 210;
           cat1.rotation = (1 - fall) * 0.3;
           cat2.rotation = -(1 - fall) * 0.3;
-          cat1.scaleY = 1.3 - fall * 0.3;
-          cat2.scaleY = 1.3 - fall * 0.3;
+          cat3.rotation = (1 - fall) * 0.25;
+          cats.forEach((cat) => {
+            cat.scaleY = 1.3 - fall * 0.3;
+          });
         }
       },
     },
@@ -465,19 +492,23 @@ export default function CatGame() {
       name: "Зеркальный танец!",
       duration: 2000,
       sound: "dance",
-      execute: (progress, cat1, cat2) => {
+      execute: (progress, [cat1, cat2, cat3]) => {
         // Mirror each other's movements
         const dance = Math.sin(progress * Math.PI * 6);
         cat1.rotation = dance * 0.5;
         cat2.rotation = -dance * 0.5;
+        cat3.rotation = dance * 0.45;
         cat1.scaleX = 1 + dance * 0.1;
         cat2.scaleX = 1 - dance * 0.1;
+        cat3.scaleX = 1 + dance * 0.15;
         cat1.y = cat1.baseY - Math.abs(dance) * 30;
         cat2.y = cat2.baseY - Math.abs(dance) * 30;
+        cat3.y = cat3.baseY - Math.abs(dance) * 40;
         
         // Slight position mirroring
         cat1.x = cat1.x + dance * 0.5;
         cat2.x = cat2.x - dance * 0.5;
+        cat3.x = cat3.x + dance * 0.4;
       },
     },
   ], []);
@@ -602,32 +633,20 @@ export default function CatGame() {
   }, []);
 
   const resetCatPosition = useCallback((canvas: HTMLCanvasElement) => {
-    const cat1 = cat1Ref.current;
-    const cat2 = cat2Ref.current;
-    
-    cat1.x = canvas.width / 2 - 120;
-    cat1.y = canvas.height - 150;
-    cat1.baseY = canvas.height - 150;
-    cat1.rotation = 0;
-    cat1.scaleX = 1;
-    cat1.scaleY = 1;
-    cat1.opacity = 1;
-    cat1.isBalloon = false;
-    cat1.hasStar = false;
-    cat1.starY = 0;
-    cat1.starOpacity = 0;
-
-    cat2.x = canvas.width / 2 + 80;
-    cat2.y = canvas.height - 160;
-    cat2.baseY = canvas.height - 160;
-    cat2.rotation = 0;
-    cat2.scaleX = 1;
-    cat2.scaleY = 1;
-    cat2.opacity = 1;
-    cat2.isBalloon = false;
-    cat2.hasStar = false;
-    cat2.starY = 0;
-    cat2.starOpacity = 0;
+    catsRef.current.forEach((cat) => {
+      const mark = STAGE_MARKS[cat.id];
+      cat.x = canvas.width / 2 + mark.x;
+      cat.y = canvas.height + mark.y;
+      cat.baseY = canvas.height + mark.y;
+      cat.rotation = 0;
+      cat.scaleX = 1;
+      cat.scaleY = 1;
+      cat.opacity = 1;
+      cat.isBalloon = false;
+      cat.hasStar = false;
+      cat.starY = 0;
+      cat.starOpacity = 0;
+    });
   }, []);
 
   const startTrick = useCallback(() => {
@@ -661,8 +680,7 @@ export default function CatGame() {
     window.addEventListener("resize", resize);
 
     // Store initial positions
-    const cat1InitialX = cat1Ref.current.x;
-    const cat2InitialX = cat2Ref.current.x;
+    const initialXs = catsRef.current.map((cat) => cat.x);
 
     const animate = (time: number) => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -671,8 +689,7 @@ export default function CatGame() {
       drawBackground(ctx, canvas.width, canvas.height, time);
 
       const state = trickStateRef.current;
-      const cat1 = cat1Ref.current;
-      const cat2 = cat2Ref.current;
+      const cats = catsRef.current;
 
       if (isPlaying) {
         const trick = tricks[state.currentTrick];
@@ -680,21 +697,23 @@ export default function CatGame() {
         state.progress = Math.min(elapsed / trick.duration, 1);
 
         // Execute trick
-        trick.execute(state.progress, cat1, cat2);
+        trick.execute(state.progress, cats);
 
         if (state.progress >= 1) {
           setIsPlaying(false);
           setCurrentTrickName("");
           resetCatPosition(canvas);
-          cat1.x = cat1InitialX;
-          cat2.x = cat2InitialX;
+          cats.forEach((cat, i) => {
+            cat.x = initialXs[i];
+          });
         }
       } else {
         // Idle animation - gentle breathing
         state.idleTime = time;
         state.breathePhase = Math.sin(time * 0.002) * 0.03;
-        cat1.scaleY = 1 + state.breathePhase;
-        cat2.scaleY = 1 + state.breathePhase * 0.8;
+        cats.forEach((cat, i) => {
+          cat.scaleY = 1 + state.breathePhase * (1 - i * 0.2);
+        });
 
         // Occasional blinking
         state.blinkTimer += 16;
@@ -708,8 +727,7 @@ export default function CatGame() {
       }
 
       // Draw cats
-      drawCat(ctx, cat1, state.isBlinking, time / 1000);
-      drawCat(ctx, cat2, state.isBlinking, time / 1000);
+      cats.forEach((cat) => drawCat(ctx, cat, state.isBlinking, time / 1000));
 
       animationRef.current = requestAnimationFrame(animate);
     };
@@ -767,7 +785,15 @@ export default function CatGame() {
       </div>
 
       <div className="mt-6 text-center text-gray-500 text-sm">
-        <p>Наши звёзды: <span className="font-semibold text-gray-700">{catName("Miuska")}</span> ({getCatPreset("Miuska").description}) и <span className="font-semibold text-gray-700">{catName("Aliska")}</span> ({getCatPreset("Aliska").description})</p>
+        <p>
+          Наши звёзды:{" "}
+          {CAST.map((id, i) => (
+            <Fragment key={id}>
+              {i > 0 && (i === CAST.length - 1 ? " и " : ", ")}
+              <span className="font-semibold text-gray-700">{catName(id)}</span> ({getCatPreset(id).description})
+            </Fragment>
+          ))}
+        </p>
       </div>
     </div>
   );

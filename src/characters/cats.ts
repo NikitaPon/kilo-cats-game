@@ -47,6 +47,27 @@ export const CAT_PRESETS: Record<CatId, CatPreset> = {
     height: 85,
     balloonColor: "#4ECDC4",
   },
+  Viki: {
+    id: "Viki",
+    name: "Viki",
+    displayName: "Вики",
+    description: "серый котёнок с коричневыми глазами",
+    colors: {
+      fur: "#9E9E9E",
+      markings: null,
+      eyes: "#8B4513",
+      innerEar: CAT_COLORS.innerEar,
+      nose: CAT_COLORS.nose,
+      eyeWhite: CAT_COLORS.eyeWhite,
+      pupil: CAT_COLORS.pupil,
+      mouth: CAT_COLORS.mouth,
+      whisker: CAT_COLORS.whisker,
+    },
+    scale: 0.75,
+    width: 60,
+    height: 53,
+    balloonColor: "#9B59B6",
+  },
 };
 
 export const CAT_IDS = Object.keys(CAT_PRESETS) as CatId[];
@@ -58,4 +79,11 @@ export function getCatPreset(id: CatId): CatPreset {
 /** Russian display name, e.g. for UI copy. */
 export function catName(id: CatId): string {
   return CAT_PRESETS[id].displayName;
+}
+
+/** Comma-separated Russian cast names, e.g. "Миуска, Алиска и Вики". */
+export function castNames(ids: CatId[] = CAT_IDS): string {
+  const names = ids.map(catName);
+  if (names.length < 2) return names[0] ?? "";
+  return `${names.slice(0, -1).join(", ")} и ${names[names.length - 1]}`;
 }

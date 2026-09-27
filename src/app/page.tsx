@@ -1,10 +1,12 @@
 import Link from "next/link";
 
+import { castNames } from "@/characters";
+
 const games = [
   {
     id: "acrobatics",
     title: "Кошачьи Акробаты",
-    description: "Смотрите, как Миуска и Алиска выполняют удивительные трюки!",
+    description: `Смотрите, как ${castNames()} выполняют удивительные трюки!`,
     emoji: "🎪",
     color: "from-purple-500 to-pink-500",
     href: "/games/acrobatics",
