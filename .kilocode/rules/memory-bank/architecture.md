@@ -1,19 +1,86 @@
-# System Patterns: Next.js Starter Template
+# System Patterns: Cat Games Collection
 
 ## Architecture Overview
 
 ```
 src/
-├── app/                    # Next.js App Router
-│   ├── layout.tsx          # Root layout + metadata
-│   ├── page.tsx            # Home page
-│   ├── globals.css         # Tailwind imports + global styles
-│   └── favicon.ico         # Site icon
-└── (expand as needed)
-    ├── components/         # React components (add when needed)
-    ├── lib/                # Utilities and helpers (add when needed)
-    └── db/                 # Database files (add via recipe)
+├── app/                        # Next.js App Router
+│   ├── layout.tsx              # Root layout + metadata
+│   ├── page.tsx                # Main menu (game registry)
+│   ├── globals.css             # Tailwind imports + global styles
+│   ├── favicon.ico             # Site icon
+│   └── games/<game-slug>/page.tsx   # One thin route wrapper per game
+├── characters/                 # Shared character design system
+│   ├── types.ts                # CatId, CatColors, CatPreset, CatSpriteOptions
+│   ├── cat-design.ts           # CAT_COLORS (palette) + CAT_MOTION (animation curves)
+│   ├── cats.ts                 # CAT_PRESETS — the cast
+│   ├── draw-cat.ts             # drawCat() / drawCatBalloon() — the only renderer
+│   └── index.ts                # Public barrel: import from "@/characters"
+└── components/                 # One self-contained component per game
+    ├── CatGame.tsx             # /games/acrobatics
+    ├── CatMusicBand.tsx        # /games/music-band
+    ├── CatHiddenToys.tsx       # /games/hidden-toys
+    └── CatSkyWonders.tsx       # /games/sky-wonders
 ```
+
+Layers, from the bottom up: **presets & tokens** → **renderer** → **game components** → **route wrappers**.
+
+## Shared Character System
+
+The cats were previously copy-pasted into all four games (~190 lines each, with
+drifting constants). They now live in `src/characters/` and there is exactly one
+implementation of the cat look.
+
+### The contract
+
+Games own **actor state** only. Characters own **appearance**.
+
+```tsx
+import { CAT_MOTION, catName, drawCat, getCatPreset } from "@/characters";
+import type { CatActor } from "@/characters";
+
+interface Cat extends CatActor {   // id, x, y come from CatActor
+  targetX: number;
+  isMoving: boolean;
+}
+
+drawCat(ctx, {
+  preset: getCatPreset(cat.id),   // identity: colors, scale, size, balloon color
+  x: cat.x,
+  y: cat.y,
+  rotation: 0,      // optional, defaults 0
+  scaleX: 1,        // optional, multiplies preset.scale (trick squash & stretch)
+  scaleY: 1,        // optional
+  opacity: 1,       // optional
+  time,             // seconds; drives the idle tail wag
+  blinking: false,  // optional
+  expression: "neutral" | "squint" | "happy",
+  pawOffset: 0,     // optional; front-paw bop (Music Band)
+  tailWag: undefined, // optional; explicit radians, else the idle wag
+});
+```
+
+### Rules
+
+1. **No cat colors in games.** Never write `#1a1a1a`, `#FFB6C1`, `#FFD700`,
+   `#4CAF50` or `isMiuska` in a game component. Colors come from
+   `preset.colors` (per cat) or `CAT_COLORS` (shared accents).
+2. **No sprite code in games.** Never draw cat body parts directly; call
+   `drawCat` / `drawCatBalloon`.
+3. **No magic motion numbers.** Use `CAT_MOTION.*` (e.g.
+   `CAT_MOTION.pawBopRange`) so motion stays consistent across games.
+4. **UI copy uses `catName(id)`**, which returns the Russian display name, so
+   renaming a cat in `cats.ts` updates every game.
+5. **Per-game `Cat` interfaces extend `CatActor`** so `id: CatId` is enforced and
+   narrow. Refer to a cat's size through `getCatPreset(cat.id).height` rather
+   than storing a copy on the actor.
+6. **Decorations attached to a cat must respect `preset.scale`** — replicate the
+   preset scale in any transform you build yourself (see the star in `CatGame.tsx`).
+
+### Adding a cat
+
+Add a `CatPreset` to `CAT_PRESETS` (`cats.ts`) and add its id to the `CatId`
+union (`types.ts`). Every game then has it available.
 
 ## Key Design Patterns
 
@@ -23,64 +90,31 @@ Uses Next.js App Router with file-based routing:
 ```
 src/app/
 ├── page.tsx           # Route: /
-├── about/page.tsx     # Route: /about
-├── blog/
-│   ├── page.tsx       # Route: /blog
-│   └── [slug]/page.tsx # Route: /blog/:slug
+├── games/
+│   └── <slug>/page.tsx  # Route: /games/<slug>
 └── api/
     └── route.ts       # API Route: /api
 ```
 
-### 2. Component Organization Pattern (When Expanding)
+Each game route is a thin wrapper: back-link + game component. Game logic lives
+in `src/components/`, not in the route.
 
-```
-src/components/
-├── ui/                # Reusable UI components (Button, Card, etc.)
-├── layout/            # Layout components (Header, Footer)
-├── sections/          # Page sections (Hero, Features, etc.)
-└── forms/             # Form components
-```
+### 2. Game Components Are Self-Contained
+
+One component per game, each owning its canvas, animation loop, audio synthesis,
+props and local state. Games share the **character system**, not gameplay code.
+Animation state goes in refs (mutated inside `requestAnimationFrame`); `useState`
+is reserved for values the UI renders.
 
 ### 3. Server Components by Default
 
-All components are Server Components unless marked with `"use client"`:
-```tsx
-// Server Component (default) - can fetch data, access DB
-export default function Page() {
-  return <div>Server rendered</div>;
-}
-
-// Client Component - for interactivity
-"use client";
-export default function Counter() {
-  const [count, setCount] = useState(0);
-  return <button onClick={() => setCount(c => c + 1)}>{count}</button>;
-}
-```
+Route wrappers and pages are Server Components; only game components carry
+`"use client"`.
 
 ### 4. Layout Pattern
 
-Layouts wrap pages and can be nested:
-```tsx
-// src/app/layout.tsx - Root layout
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <html lang="en">
-      <body>{children}</body>
-    </html>
-  );
-}
-
-// src/app/dashboard/layout.tsx - Nested layout
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex">
-      <Sidebar />
-      <main>{children}</main>
-    </div>
-  );
-}
-```
+Layouts wrap pages and can be nested: `src/app/layout.tsx` is the root layout,
+adding a route group only needs a nested `layout.tsx`.
 
 ## Styling Conventions
 
@@ -103,15 +137,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
 ## File Naming Conventions
 
-- Components: PascalCase (`Button.tsx`, `Header.tsx`)
+- Components: PascalCase (`CatGame.tsx`, `Button.tsx`)
+- Modules in domain folders: kebab-case (`cat-design.ts`, `draw-cat.ts`)
 - Utilities: camelCase (`utils.ts`, `helpers.ts`)
 - Pages/Routes: lowercase (`page.tsx`, `layout.tsx`)
-- Directories: kebab-case (`api-routes/`) or lowercase (`components/`)
+- Directories: lowercase (`characters/`, `components/`) or kebab-case for route groups
 
 ## State Management
 
 For simple needs:
-- `useState` for local component state
+- `useState` for local component state that the UI renders
+- `useRef` for per-frame animation state (mutated in `requestAnimationFrame`,
+  never triggers re-render)
 - `useContext` for shared state
 - Server Components for data fetching
 

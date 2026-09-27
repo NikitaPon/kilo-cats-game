@@ -89,21 +89,25 @@ bun typecheck      # Run TypeScript type checking
 ├── tsconfig.json           # TypeScript configuration
 ├── postcss.config.mjs      # PostCSS (Tailwind) config
 ├── eslint.config.mjs       # ESLint configuration
-├── public/                 # Static assets
-│   └── .gitkeep
 └── src/                    # Source code
-    └── app/                # Next.js App Router
-        ├── layout.tsx      # Root layout
-        ├── page.tsx        # Home page
-        ├── globals.css     # Global styles
-        └── favicon.ico     # Site icon
+    ├── app/                # Next.js App Router
+    │   ├── layout.tsx      # Root layout
+    │   ├── page.tsx        # Main menu
+    │   ├── globals.css     # Global styles
+    │   ├── favicon.ico     # Site icon
+    │   └── games/          # One route wrapper per game
+    ├── characters/         # Shared cat design system (renderer + presets + tokens)
+    └── components/         # One component per mini-game
 ```
+
+Note: `src/app/layout.tsx` uses `next/font/google` (Geist). `bun run build`
+therefore needs network access to fetch the fonts and fails in a fully offline
+sandbox — this is unrelated to application code.
 
 ## Technical Constraints
 
 ### Starting Point
 
-- Minimal structure - expand as needed
 - No database by default (use recipe to add)
 - No authentication by default (add when needed)
 

@@ -2,6 +2,9 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 
+import { catName, drawCat as drawCatSprite, getCatPreset } from "@/characters";
+import type { CatActor } from "@/characters";
+
 // Types
 interface HidingSpot {
   id: string;
@@ -23,10 +26,7 @@ interface Toy {
   color: string;
 }
 
-interface Cat {
-  name: "Miuska" | "Aliska";
-  x: number;
-  y: number;
+interface Cat extends CatActor {
   targetX: number;
   targetY: number;
   isMoving: boolean;
@@ -60,8 +60,8 @@ export default function CatHiddenToys() {
 
   const [toys, setToys] = useState<Toy[]>([]);
   const [cats, setCats] = useState<Cat[]>([
-    { name: "Miuska", x: 200, y: 400, targetX: 200, targetY: 400, isMoving: false, isDiscovering: false, discoveredToy: null },
-    { name: "Aliska", x: 600, y: 420, targetX: 600, targetY: 420, isMoving: false, isDiscovering: false, discoveredToy: null },
+    { id: "Miuska", x: 200, y: 400, targetX: 200, targetY: 400, isMoving: false, isDiscovering: false, discoveredToy: null },
+    { id: "Aliska", x: 600, y: 420, targetX: 600, targetY: 420, isMoving: false, isDiscovering: false, discoveredToy: null },
   ]);
   const [discoveryAnimation, setDiscoveryAnimation] = useState<{
     active: boolean;
@@ -293,206 +293,17 @@ export default function CatHiddenToys() {
     });
   }, []);
 
-  // Draw a cat
+  // Draw a cat through the shared character renderer
   const drawCat = useCallback((ctx: CanvasRenderingContext2D, cat: Cat, time: number) => {
-    ctx.save();
-    ctx.translate(cat.x, cat.y);
+    const isCurious = !cat.isMoving && !cat.isDiscovering;
 
-    const isMiuska = cat.name === "Miuska";
-    const catColor = "#1a1a1a";
-    const bellyColor = isMiuska ? "#1a1a1a" : "#f5f5f5";
-    const eyeColor = isMiuska ? "#FFD700" : "#4CAF50";
-    const scale = isMiuska ? 1 : 1.2;
-
-    ctx.scale(scale, scale);
-
-    // Tail animation
-    const tailWag = Math.sin(time * 3) * 0.2;
-    ctx.save();
-    ctx.rotate(tailWag);
-    ctx.fillStyle = catColor;
-    ctx.beginPath();
-    ctx.moveTo(-30, -10);
-    ctx.quadraticCurveTo(-50, -30, -45, -50);
-    ctx.quadraticCurveTo(-40, -55, -35, -50);
-    ctx.quadraticCurveTo(-40, -30, -25, -10);
-    ctx.fill();
-    ctx.restore();
-
-    // Back legs
-    ctx.fillStyle = catColor;
-    ctx.beginPath();
-    ctx.ellipse(-15, 35, 12, 18, -0.3, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.ellipse(15, 35, 12, 18, 0.3, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Body
-    ctx.fillStyle = catColor;
-    ctx.beginPath();
-    ctx.ellipse(0, 10, 35, 30, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Belly (for Aliska)
-    if (!isMiuska) {
-      ctx.fillStyle = bellyColor;
-      ctx.beginPath();
-      ctx.ellipse(0, 15, 20, 18, 0, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    // Front legs
-    ctx.fillStyle = catColor;
-    ctx.beginPath();
-    ctx.ellipse(-20, 30, 8, 15, -0.2, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.ellipse(20, 30, 8, 15, 0.2, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Paws (white for Aliska)
-    if (!isMiuska) {
-      ctx.fillStyle = "#f5f5f5";
-      ctx.beginPath();
-      ctx.ellipse(-20, 42, 6, 4, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.ellipse(20, 42, 6, 4, 0, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    // Head
-    ctx.fillStyle = catColor;
-    ctx.beginPath();
-    ctx.ellipse(0, -25, 25, 22, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Ears
-    ctx.beginPath();
-    ctx.moveTo(-20, -40);
-    ctx.lineTo(-12, -55);
-    ctx.lineTo(-5, -38);
-    ctx.closePath();
-    ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(20, -40);
-    ctx.lineTo(12, -55);
-    ctx.lineTo(5, -38);
-    ctx.closePath();
-    ctx.fill();
-
-    // Inner ears
-    ctx.fillStyle = "#FFB6C1";
-    ctx.beginPath();
-    ctx.moveTo(-17, -42);
-    ctx.lineTo(-12, -52);
-    ctx.lineTo(-8, -40);
-    ctx.closePath();
-    ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(17, -42);
-    ctx.lineTo(12, -52);
-    ctx.lineTo(8, -40);
-    ctx.closePath();
-    ctx.fill();
-
-    // Face markings for Aliska
-    if (!isMiuska) {
-      ctx.fillStyle = "#f5f5f5";
-      ctx.beginPath();
-      ctx.ellipse(0, -20, 12, 10, 0, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    // Eyes
-    const eyeY = -28;
-    const eyeSpacing = 12;
-
-    // Eye whites
-    ctx.fillStyle = "#FFFFFF";
-    ctx.beginPath();
-    ctx.ellipse(-eyeSpacing, eyeY, 8, 9, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.ellipse(eyeSpacing, eyeY, 8, 9, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Irises
-    ctx.fillStyle = eyeColor;
-    ctx.beginPath();
-    ctx.ellipse(-eyeSpacing, eyeY, 5, 6, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.ellipse(eyeSpacing, eyeY, 5, 6, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Pupils
-    ctx.fillStyle = "#000000";
-    ctx.beginPath();
-    ctx.ellipse(-eyeSpacing, eyeY, 2, 4, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.ellipse(eyeSpacing, eyeY, 2, 4, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Eye shine
-    ctx.fillStyle = "#FFFFFF";
-    ctx.beginPath();
-    ctx.arc(-eyeSpacing - 1, eyeY - 2, 2, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(eyeSpacing - 1, eyeY - 2, 2, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Nose
-    ctx.fillStyle = "#FFB6C1";
-    ctx.beginPath();
-    ctx.moveTo(0, -18);
-    ctx.lineTo(-4, -12);
-    ctx.lineTo(4, -12);
-    ctx.closePath();
-    ctx.fill();
-
-    // Mouth
-    ctx.strokeStyle = "#333";
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(0, -12);
-    ctx.lineTo(0, -8);
-    ctx.moveTo(-6, -6);
-    ctx.quadraticCurveTo(0, -2, 6, -6);
-    ctx.stroke();
-
-    // Whiskers
-    ctx.strokeStyle = "#666";
-    ctx.lineWidth = 1;
-    for (let i = -1; i <= 1; i++) {
-      ctx.beginPath();
-      ctx.moveTo(-20, -15 + i * 5);
-      ctx.lineTo(-40, -18 + i * 8);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(20, -15 + i * 5);
-      ctx.lineTo(40, -18 + i * 8);
-      ctx.stroke();
-    }
-
-    // Mysterious expression - slightly squinting
-    if (!cat.isMoving && !cat.isDiscovering) {
-      ctx.strokeStyle = catColor;
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.moveTo(-eyeSpacing - 10, eyeY);
-      ctx.lineTo(-eyeSpacing + 10, eyeY);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(eyeSpacing - 10, eyeY);
-      ctx.lineTo(eyeSpacing + 10, eyeY);
-      ctx.stroke();
-    }
-
-    ctx.restore();
+    drawCatSprite(ctx, {
+      preset: getCatPreset(cat.id),
+      x: cat.x,
+      y: cat.y,
+      time,
+      expression: isCurious ? "squint" : "neutral",
+    });
   }, []);
 
   // Draw a toy
@@ -851,7 +662,7 @@ export default function CatHiddenToys() {
       })
     );
 
-    setMessage(`${randomCatIndex === 0 ? "Миднайт" : "Орео"} ищет игрушку...`);
+    setMessage(`${catName(cats[randomCatIndex].id)} ищет игрушку...`);
 
     // After cat arrives, reveal toy
     setTimeout(() => {

@@ -2,24 +2,16 @@
 
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 
-interface Cat {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  color: string;
-  bellyColor: string;
-  eyeColor: string;
-  name: string;
-  isLarge: boolean;
+import { CAT_MOTION, catName, drawCat as drawCatSprite, getCatPreset } from "@/characters";
+import type { CatActor } from "@/characters";
+
+interface Cat extends CatActor {
   rotation: number;
   scaleX: number;
   scaleY: number;
   // Animation
   isPlaying: boolean;
   playProgress: number;
-  armAngle: number;
-  tailWag: number;
 }
 
 interface Instrument {
@@ -123,39 +115,23 @@ export default function CatMusicBand() {
   const cat1Ref = useRef<Cat>({
     x: 0,
     y: 0,
-    width: 80,
-    height: 70,
-    color: "#1a1a1a",
-    bellyColor: "#1a1a1a",
-    eyeColor: "#FFD700",
-    name: "Miuska",
-    isLarge: false,
+    id: "Miuska",
     rotation: 0,
     scaleX: 1,
     scaleY: 1,
     isPlaying: false,
     playProgress: 0,
-    armAngle: 0,
-    tailWag: 0,
   });
 
   const cat2Ref = useRef<Cat>({
     x: 0,
     y: 0,
-    width: 100,
-    height: 85,
-    color: "#1a1a1a",
-    bellyColor: "#FFFFFF",
-    eyeColor: "#4CAF50",
-    name: "Aliska",
-    isLarge: true,
+    id: "Aliska",
     rotation: 0,
     scaleX: 1,
     scaleY: 1,
     isPlaying: false,
     playProgress: 0,
-    armAngle: 0,
-    tailWag: 0,
   });
 
   const instrumentsRef = useRef<Instrument[]>([]);
@@ -175,201 +151,26 @@ export default function CatMusicBand() {
   }, []);
 
   const drawCat = useCallback((ctx: CanvasRenderingContext2D, cat: Cat, isBlinking: boolean, time: number = 0) => {
-    ctx.save();
-    ctx.translate(cat.x, cat.y);
-    ctx.rotate(cat.rotation);
-    ctx.scale(cat.scaleX, cat.scaleY);
+    const isPlaying = cat.isPlaying;
 
-    const isMiuska = cat.name === "Miuska";
-    const catColor = "#1a1a1a";
-    const bellyColor = isMiuska ? "#1a1a1a" : "#f5f5f5";
-    const eyeColor = isMiuska ? "#FFD700" : "#4CAF50";
-    const scale = isMiuska ? 1 : 1.2;
-
-    ctx.scale(scale, scale);
-
-    // Tail animation
-    const tailWag = Math.sin(time * 3 + (cat.isPlaying ? cat.playProgress * 10 : 0)) * 0.3;
-    ctx.save();
-    ctx.rotate(tailWag);
-    ctx.fillStyle = catColor;
-    ctx.beginPath();
-    ctx.moveTo(-30, -10);
-    ctx.quadraticCurveTo(-50, -30, -45, -50);
-    ctx.quadraticCurveTo(-40, -55, -35, -50);
-    ctx.quadraticCurveTo(-40, -30, -25, -10);
-    ctx.fill();
-    ctx.restore();
-
-    // Back legs
-    ctx.fillStyle = catColor;
-    ctx.beginPath();
-    ctx.ellipse(-15, 35, 12, 18, -0.3, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.ellipse(15, 35, 12, 18, 0.3, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Body
-    ctx.fillStyle = catColor;
-    ctx.beginPath();
-    ctx.ellipse(0, 10, 35, 30, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Belly (for Aliska)
-    if (!isMiuska) {
-      ctx.fillStyle = bellyColor;
-      ctx.beginPath();
-      ctx.ellipse(0, 15, 20, 18, 0, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    // Front legs with animation
-    ctx.fillStyle = catColor;
-    const pawOffset = cat.isPlaying ? Math.sin(cat.playProgress * Math.PI * 4) * 8 : 0;
-    ctx.beginPath();
-    ctx.ellipse(-20 - pawOffset, 30, 8, 15, -0.2, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.ellipse(20 + pawOffset, 30, 8, 15, 0.2, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Paws (white for Aliska)
-    if (!isMiuska) {
-      ctx.fillStyle = "#f5f5f5";
-      ctx.beginPath();
-      ctx.ellipse(-20 - pawOffset, 42, 6, 4, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.ellipse(20 + pawOffset, 42, 6, 4, 0, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    // Head
-    ctx.fillStyle = catColor;
-    ctx.beginPath();
-    ctx.ellipse(0, -25, 25, 22, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Ears
-    ctx.beginPath();
-    ctx.moveTo(-20, -40);
-    ctx.lineTo(-12, -55);
-    ctx.lineTo(-5, -38);
-    ctx.closePath();
-    ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(20, -40);
-    ctx.lineTo(12, -55);
-    ctx.lineTo(5, -38);
-    ctx.closePath();
-    ctx.fill();
-
-    // Inner ears
-    ctx.fillStyle = "#FFB6C1";
-    ctx.beginPath();
-    ctx.moveTo(-17, -42);
-    ctx.lineTo(-12, -52);
-    ctx.lineTo(-8, -40);
-    ctx.closePath();
-    ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(17, -42);
-    ctx.lineTo(12, -52);
-    ctx.lineTo(8, -40);
-    ctx.closePath();
-    ctx.fill();
-
-    // Face markings for Aliska
-    if (!isMiuska) {
-      ctx.fillStyle = "#f5f5f5";
-      ctx.beginPath();
-      ctx.ellipse(0, -20, 12, 10, 0, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    // Eyes
-    const eyeY = -28;
-    const eyeSpacing = 12;
-
-    // Eye whites
-    ctx.fillStyle = "#FFFFFF";
-    ctx.beginPath();
-    ctx.ellipse(-eyeSpacing, eyeY, 8, 9, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.ellipse(eyeSpacing, eyeY, 8, 9, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Irises
-    ctx.fillStyle = eyeColor;
-    ctx.beginPath();
-    ctx.ellipse(-eyeSpacing, eyeY, 5, isBlinking ? 2 : 6, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.ellipse(eyeSpacing, eyeY, 5, isBlinking ? 2 : 6, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Pupils
-    if (!isBlinking) {
-      ctx.fillStyle = "#000000";
-      ctx.beginPath();
-      ctx.ellipse(-eyeSpacing, eyeY, 2, 4, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.ellipse(eyeSpacing, eyeY, 2, 4, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Eye shine
-      ctx.fillStyle = "#FFFFFF";
-      ctx.beginPath();
-      ctx.arc(-eyeSpacing - 1, eyeY - 2, 2, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(eyeSpacing - 1, eyeY - 2, 2, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    // Nose
-    ctx.fillStyle = "#FFB6C1";
-    ctx.beginPath();
-    ctx.moveTo(0, -18);
-    ctx.lineTo(-4, -12);
-    ctx.lineTo(4, -12);
-    ctx.closePath();
-    ctx.fill();
-
-    // Mouth - happy when playing
-    ctx.strokeStyle = "#333";
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(0, -12);
-    ctx.lineTo(0, -8);
-    if (cat.isPlaying) {
-      // Happy open mouth
-      ctx.moveTo(-6, -6);
-      ctx.quadraticCurveTo(0, 0, 6, -6);
-    } else {
-      ctx.moveTo(-6, -6);
-      ctx.quadraticCurveTo(0, -2, 6, -6);
-    }
-    ctx.stroke();
-
-    // Whiskers
-    ctx.strokeStyle = "#666";
-    ctx.lineWidth = 1;
-    for (let i = -1; i <= 1; i++) {
-      ctx.beginPath();
-      ctx.moveTo(-20, -15 + i * 5);
-      ctx.lineTo(-40, -18 + i * 8);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(20, -15 + i * 5);
-      ctx.lineTo(40, -18 + i * 8);
-      ctx.stroke();
-    }
-
-    ctx.restore();
+    drawCatSprite(ctx, {
+      preset: getCatPreset(cat.id),
+      x: cat.x,
+      y: cat.y,
+      rotation: cat.rotation,
+      scaleX: cat.scaleX,
+      scaleY: cat.scaleY,
+      time,
+      blinking: isBlinking,
+      expression: isPlaying ? "happy" : "neutral",
+      tailWag: isPlaying
+        ? Math.sin(time * CAT_MOTION.activeTailWagSpeed + cat.playProgress * CAT_MOTION.activeTailWagSpeedBoost) *
+          CAT_MOTION.activeTailWagAmplitude
+        : undefined,
+      pawOffset: isPlaying
+        ? Math.sin(cat.playProgress * Math.PI * CAT_MOTION.pawBopCycles) * CAT_MOTION.pawBopRange
+        : 0,
+    });
   }, []);
 
   const drawInstrument = useCallback((ctx: CanvasRenderingContext2D, instrument: Instrument, isPlaying: boolean, playProgress: number) => {
@@ -735,8 +536,9 @@ export default function CatMusicBand() {
 
       <div className="mt-6 text-center text-amber-200 text-sm">
         <p>
-          Наши музыканты: <span className="font-semibold text-white">Миднайт</span> и{" "}
-          <span className="font-semibold text-white">Орео</span> — обожают играть вместе!
+          Наши музыканты:{" "}
+          <span className="font-semibold text-white">{catName("Miuska")}</span> и{" "}
+          <span className="font-semibold text-white">{catName("Aliska")}</span> — обожают играть вместе!
         </p>
       </div>
     </div>

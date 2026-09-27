@@ -20,6 +20,7 @@ A collection of fun mini-games featuring two adorable cats (Miuska and Aliska). 
 - [x] Hidden Toys game implementation
 - [x] Sky Wonders game implementation
 - [x] Bug fixes: back button, cat names, Sky Wonders falling items
+- [x] **Character architecture**: extracted all cats into `src/characters/` — one shared renderer, one palette, one set of presets
 
 ## Current Structure
 
@@ -36,6 +37,7 @@ A collection of fun mini-games featuring two adorable cats (Miuska and Aliska). 
 | `src/components/CatMusicBand.tsx` | Music band game component | ✅ Complete |
 | `src/components/CatHiddenToys.tsx` | Hidden toys game component | ✅ Complete |
 | `src/components/CatSkyWonders.tsx` | Sky wonders game component | ✅ Complete |
+| `src/characters/` | **Shared cat design system** (renderer, palette, presets) | ✅ Complete |
 | `.kilocode/` | AI context & recipes | ✅ Ready |
 
 ## Game Collection
@@ -76,9 +78,14 @@ A collection of fun mini-games featuring two adorable cats (Miuska and Aliska). 
 
 ## Cat Characters
 
-All games feature the same two cats:
+All games feature the same two cats, defined once in `src/characters/cats.ts` and
+drawn by the single shared renderer in `src/characters/draw-cat.ts`:
 - **Miuska (Миуска)**: Medium-sized, completely black with yellow eyes
 - **Aliska (Алиска)**: Large-sized, black back with white belly, black-white paws and face, green eyes
+
+**Never hardcode cat colors, proportions or motion constants in a game.** Import
+from `@/characters` and pass a preset plus placement/expression. See
+`architecture.md` → "Shared Character System" for the full contract.
 
 ## Current Focus
 
@@ -86,15 +93,21 @@ The game collection is complete with four mini-games. Future enhancements could 
 - More mini-games
 - Score tracking across games
 - Sound settings
-- Additional cat characters
+- Additional cat characters (just add a preset to `CAT_PRESETS`)
 
 ## Quick Start Guide
+
+### To add a new cat:
+1. Add a `CatPreset` entry to `CAT_PRESETS` in `src/characters/cats.ts`
+2. Add the id to the `CatId` union in `src/characters/types.ts`
+3. Spawn it in a game with `id` and render with `getCatPreset(cat.id)` + `drawCat`
 
 ### To add a new game:
 
 1. Create game component in `src/components/NewGame.tsx`
 2. Create route at `src/app/games/new-game/page.tsx`
 3. Add game card to `src/app/page.tsx` games array
+4. Draw cats via `drawCat(ctx, { preset: getCatPreset(cat.id), x, y, ... })` — never inline sprite code
 
 ### To add a new page:
 
@@ -160,3 +173,4 @@ export async function GET() {
 | 2026-02-14 | Fixed Sky Wonders: items now fall correctly, cats renamed to Miuska/Aliska |
 | 2026-02-14 | Unified cat design across all games, fixed "Back to menu" button |
 | 2026-02-14 | Unified cat design in CatGame.tsx and CatMusicBand.tsx based on CatSkyWonders.tsx |
+| 2026-09-27 | Refactored architecture: cats moved to `src/characters/` (shared renderer `drawCat`, palette `CAT_COLORS`, motion `CAT_MOTION`, presets `CAT_PRESETS`). Removed ~4 copies of the 190-line sprite from the games. Fixed legacy Миднайт/Орео names. Verified all 26 render paths produce identical canvas geometry to the originals |

@@ -2,17 +2,11 @@
 
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 
-interface Cat {
-  x: number;
-  y: number;
+import { CAT_COLORS, catName, drawCat as drawCatSprite, drawCatBalloon, getCatPreset } from "@/characters";
+import type { CatActor } from "@/characters";
+
+interface Cat extends CatActor {
   baseY: number;
-  width: number;
-  height: number;
-  color: string;
-  bellyColor: string;
-  eyeColor: string;
-  name: string;
-  isLarge: boolean;
   // Animation state
   rotation: number;
   scaleX: number;
@@ -20,7 +14,6 @@ interface Cat {
   opacity: number;
   // For balloon transformation
   isBalloon: boolean;
-  balloonColor: string;
   // For star catching
   hasStar: boolean;
   starY: number;
@@ -205,7 +198,7 @@ const playTrickSound = (type: Trick["sound"]) => {
 const drawStar = (ctx: CanvasRenderingContext2D, x: number, y: number, size: number, opacity: number) => {
   ctx.save();
   ctx.globalAlpha = opacity;
-  ctx.fillStyle = "#FFD700";
+  ctx.fillStyle = CAT_COLORS.star;
   ctx.beginPath();
   for (let i = 0; i < 5; i++) {
     const angle = (i * 4 * Math.PI) / 5 - Math.PI / 2;
@@ -218,7 +211,7 @@ const drawStar = (ctx: CanvasRenderingContext2D, x: number, y: number, size: num
   ctx.fill();
   
   // Glow effect
-  ctx.shadowColor = "#FFD700";
+  ctx.shadowColor = CAT_COLORS.star;
   ctx.shadowBlur = 20;
   ctx.fill();
   ctx.restore();
@@ -234,19 +227,12 @@ export default function CatGame() {
     x: 0,
     y: 0,
     baseY: 0,
-    width: 80,
-    height: 70,
-    color: "#1a1a1a",
-    bellyColor: "#1a1a1a",
-    eyeColor: "#FFD700",
-    name: "Miuska",
-    isLarge: false,
+    id: "Miuska",
     rotation: 0,
     scaleX: 1,
     scaleY: 1,
     opacity: 1,
     isBalloon: false,
-    balloonColor: "#FF6B6B",
     hasStar: false,
     starY: 0,
     starOpacity: 0,
@@ -256,19 +242,12 @@ export default function CatGame() {
     x: 0,
     y: 0,
     baseY: 0,
-    width: 100,
-    height: 85,
-    color: "#1a1a1a",
-    bellyColor: "#FFFFFF",
-    eyeColor: "#4CAF50",
-    name: "Aliska",
-    isLarge: true,
+    id: "Aliska",
     rotation: 0,
     scaleX: 1,
     scaleY: 1,
     opacity: 1,
     isBalloon: false,
-    balloonColor: "#4ECDC4",
     hasStar: false,
     starY: 0,
     starOpacity: 0,
@@ -418,7 +397,7 @@ export default function CatGame() {
         } else if (progress < 0.7) {
           // Landing on top
           const land = (progress - 0.4) / 0.3;
-          cat1.y = cat2.baseY - cat2.height - 20 + land * 20;
+          cat1.y = cat2.baseY - getCatPreset(cat2.id).height - 20 + land * 20;
           cat1.rotation = land * Math.PI * 2;
           cat2.scaleY = 0.8;
         } else {
@@ -504,294 +483,35 @@ export default function CatGame() {
   ], []);
 
   const drawCat = useCallback((ctx: CanvasRenderingContext2D, cat: Cat, isBlinking: boolean, time: number = 0) => {
-    ctx.save();
-    ctx.translate(cat.x, cat.y);
-    ctx.rotate(cat.rotation);
-    ctx.scale(cat.scaleX, cat.scaleY);
-    ctx.globalAlpha = cat.opacity;
-
-    const isMiuska = cat.name === "Miuska";
-    const catColor = "#1a1a1a";
-    const bellyColor = isMiuska ? "#1a1a1a" : "#f5f5f5";
-    const eyeColor = isMiuska ? "#FFD700" : "#4CAF50";
-    const scale = isMiuska ? 1 : 1.2;
-
-    ctx.scale(scale, scale);
+    const preset = getCatPreset(cat.id);
+    const sprite = {
+      preset,
+      x: cat.x,
+      y: cat.y,
+      rotation: cat.rotation,
+      scaleX: cat.scaleX,
+      scaleY: cat.scaleY,
+      opacity: cat.opacity,
+      time,
+      blinking: isBlinking,
+    };
 
     if (cat.isBalloon) {
-      // Draw balloon cat
-      ctx.beginPath();
-      ctx.ellipse(0, -cat.height / 2, cat.width / 2 + 10, cat.height / 2 + 20, 0, 0, Math.PI * 2);
-      ctx.fillStyle = cat.balloonColor;
-      ctx.fill();
-      ctx.strokeStyle = "rgba(0,0,0,0.2)";
-      ctx.lineWidth = 2;
-      ctx.stroke();
-
-      // Balloon string
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.quadraticCurveTo(10, 30, 0, 60);
-      ctx.strokeStyle = "#666";
-      ctx.lineWidth = 2;
-      ctx.stroke();
-
-      // Cat face on balloon - unified design
-      // Eye whites
-      const eyeY = -cat.height / 2 - 5;
-      const eyeSpacing = 12;
-      ctx.fillStyle = "#FFFFFF";
-      ctx.beginPath();
-      ctx.ellipse(-eyeSpacing, eyeY, 8, 9, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.ellipse(eyeSpacing, eyeY, 8, 9, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Irises
-      ctx.fillStyle = eyeColor;
-      ctx.beginPath();
-      ctx.ellipse(-eyeSpacing, eyeY, 5, isBlinking ? 2 : 6, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.ellipse(eyeSpacing, eyeY, 5, isBlinking ? 2 : 6, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Pupils
-      if (!isBlinking) {
-        ctx.fillStyle = "#000000";
-        ctx.beginPath();
-        ctx.ellipse(-eyeSpacing, eyeY, 2, 4, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.ellipse(eyeSpacing, eyeY, 2, 4, 0, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Eye shine
-        ctx.fillStyle = "#FFFFFF";
-        ctx.beginPath();
-        ctx.arc(-eyeSpacing - 1, eyeY - 2, 2, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(eyeSpacing - 1, eyeY - 2, 2, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      // Nose
-      ctx.fillStyle = "#FFB6C1";
-      ctx.beginPath();
-      ctx.moveTo(0, -cat.height / 2 + 10);
-      ctx.lineTo(-4, -cat.height / 2 + 16);
-      ctx.lineTo(4, -cat.height / 2 + 16);
-      ctx.closePath();
-      ctx.fill();
-
-      // Mouth
-      ctx.strokeStyle = "#333";
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.moveTo(0, -cat.height / 2 + 16);
-      ctx.lineTo(0, -cat.height / 2 + 20);
-      ctx.moveTo(-6, -cat.height / 2 + 22);
-      ctx.quadraticCurveTo(0, -cat.height / 2 + 26, 6, -cat.height / 2 + 22);
-      ctx.stroke();
-
-      // Whiskers
-      ctx.strokeStyle = "#666";
-      ctx.lineWidth = 1;
-      for (let i = -1; i <= 1; i++) {
-        ctx.beginPath();
-        ctx.moveTo(-20, -cat.height / 2 + 15 + i * 5);
-        ctx.lineTo(-40, -cat.height / 2 + 12 + i * 8);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(20, -cat.height / 2 + 15 + i * 5);
-        ctx.lineTo(40, -cat.height / 2 + 12 + i * 8);
-        ctx.stroke();
-      }
-    } else {
-      // Draw normal cat - unified design from CatSkyWonders
-      // Tail animation
-      const tailWag = Math.sin(time * 3) * 0.2;
-      ctx.save();
-      ctx.rotate(tailWag);
-      ctx.fillStyle = catColor;
-      ctx.beginPath();
-      ctx.moveTo(-30, -10);
-      ctx.quadraticCurveTo(-50, -30, -45, -50);
-      ctx.quadraticCurveTo(-40, -55, -35, -50);
-      ctx.quadraticCurveTo(-40, -30, -25, -10);
-      ctx.fill();
-      ctx.restore();
-
-      // Back legs
-      ctx.fillStyle = catColor;
-      ctx.beginPath();
-      ctx.ellipse(-15, 35, 12, 18, -0.3, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.ellipse(15, 35, 12, 18, 0.3, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Body
-      ctx.fillStyle = catColor;
-      ctx.beginPath();
-      ctx.ellipse(0, 10, 35, 30, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Belly (for Aliska)
-      if (!isMiuska) {
-        ctx.fillStyle = bellyColor;
-        ctx.beginPath();
-        ctx.ellipse(0, 15, 20, 18, 0, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      // Front legs
-      ctx.fillStyle = catColor;
-      ctx.beginPath();
-      ctx.ellipse(-20, 30, 8, 15, -0.2, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.ellipse(20, 30, 8, 15, 0.2, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Paws (white for Aliska)
-      if (!isMiuska) {
-        ctx.fillStyle = "#f5f5f5";
-        ctx.beginPath();
-        ctx.ellipse(-20, 42, 6, 4, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.ellipse(20, 42, 6, 4, 0, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      // Head
-      ctx.fillStyle = catColor;
-      ctx.beginPath();
-      ctx.ellipse(0, -25, 25, 22, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Ears
-      ctx.beginPath();
-      ctx.moveTo(-20, -40);
-      ctx.lineTo(-12, -55);
-      ctx.lineTo(-5, -38);
-      ctx.closePath();
-      ctx.fill();
-      ctx.beginPath();
-      ctx.moveTo(20, -40);
-      ctx.lineTo(12, -55);
-      ctx.lineTo(5, -38);
-      ctx.closePath();
-      ctx.fill();
-
-      // Inner ears
-      ctx.fillStyle = "#FFB6C1";
-      ctx.beginPath();
-      ctx.moveTo(-17, -42);
-      ctx.lineTo(-12, -52);
-      ctx.lineTo(-8, -40);
-      ctx.closePath();
-      ctx.fill();
-      ctx.beginPath();
-      ctx.moveTo(17, -42);
-      ctx.lineTo(12, -52);
-      ctx.lineTo(8, -40);
-      ctx.closePath();
-      ctx.fill();
-
-      // Face markings for Aliska
-      if (!isMiuska) {
-        ctx.fillStyle = "#f5f5f5";
-        ctx.beginPath();
-        ctx.ellipse(0, -20, 12, 10, 0, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      // Eyes
-      const eyeY = -28;
-      const eyeSpacing = 12;
-
-      // Eye whites
-      ctx.fillStyle = "#FFFFFF";
-      ctx.beginPath();
-      ctx.ellipse(-eyeSpacing, eyeY, 8, 9, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.ellipse(eyeSpacing, eyeY, 8, 9, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Irises
-      ctx.fillStyle = eyeColor;
-      ctx.beginPath();
-      ctx.ellipse(-eyeSpacing, eyeY, 5, isBlinking ? 2 : 6, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.ellipse(eyeSpacing, eyeY, 5, isBlinking ? 2 : 6, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Pupils
-      if (!isBlinking) {
-        ctx.fillStyle = "#000000";
-        ctx.beginPath();
-        ctx.ellipse(-eyeSpacing, eyeY, 2, 4, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.ellipse(eyeSpacing, eyeY, 2, 4, 0, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Eye shine
-        ctx.fillStyle = "#FFFFFF";
-        ctx.beginPath();
-        ctx.arc(-eyeSpacing - 1, eyeY - 2, 2, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(eyeSpacing - 1, eyeY - 2, 2, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      // Nose
-      ctx.fillStyle = "#FFB6C1";
-      ctx.beginPath();
-      ctx.moveTo(0, -18);
-      ctx.lineTo(-4, -12);
-      ctx.lineTo(4, -12);
-      ctx.closePath();
-      ctx.fill();
-
-      // Mouth
-      ctx.strokeStyle = "#333";
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.moveTo(0, -12);
-      ctx.lineTo(0, -8);
-      ctx.moveTo(-6, -6);
-      ctx.quadraticCurveTo(0, -2, 6, -6);
-      ctx.stroke();
-
-      // Whiskers
-      ctx.strokeStyle = "#666";
-      ctx.lineWidth = 1;
-      for (let i = -1; i <= 1; i++) {
-        ctx.beginPath();
-        ctx.moveTo(-20, -15 + i * 5);
-        ctx.lineTo(-40, -18 + i * 8);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(20, -15 + i * 5);
-        ctx.lineTo(40, -18 + i * 8);
-        ctx.stroke();
-      }
-
-      // Star if catching
-      if (cat.hasStar && cat.starOpacity > 0) {
-        drawStar(ctx, 0, -50 + cat.starY, 20, cat.starOpacity);
-      }
+      drawCatBalloon(ctx, sprite);
+      return;
     }
 
-    ctx.restore();
+    drawCatSprite(ctx, sprite);
+
+    // Star if catching — drawn in the cat's own scaled space
+    if (cat.hasStar && cat.starOpacity > 0) {
+      ctx.save();
+      ctx.translate(cat.x, cat.y);
+      ctx.rotate(cat.rotation);
+      ctx.scale(cat.scaleX * preset.scale, cat.scaleY * preset.scale);
+      drawStar(ctx, 0, -50 + cat.starY, 20, cat.starOpacity);
+      ctx.restore();
+    }
   }, []);
 
   const drawBackground = useCallback((ctx: CanvasRenderingContext2D, width: number, height: number, time: number) => {
@@ -1047,7 +767,7 @@ export default function CatGame() {
       </div>
 
       <div className="mt-6 text-center text-gray-500 text-sm">
-        <p>Наши звёзды: <span className="font-semibold text-gray-700">Миднайт</span> (чёрный кот с жёлтыми глазами) и <span className="font-semibold text-gray-700">Орео</span> (чёрно-белый кот с зелёными глазами)</p>
+        <p>Наши звёзды: <span className="font-semibold text-gray-700">{catName("Miuska")}</span> ({getCatPreset("Miuska").description}) и <span className="font-semibold text-gray-700">{catName("Aliska")}</span> ({getCatPreset("Aliska").description})</p>
       </div>
     </div>
   );
