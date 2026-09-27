@@ -20,13 +20,21 @@ src/
 │   └── audio.ts                # Shared AudioContext + playTone/playSequence
 └── components/                 # One self-contained component per game
     ├── CatGame.tsx             # /games/acrobatics
-    ├── CatMusicBand.tsx        # /games/music-band
+    ├── CatMusicBand.tsx        # /games/music-band (3-lane rhythm game)
+    ├── music-song.ts           # Its chart generator, timing and scoring rules
     ├── CatHiddenToys.tsx       # /games/hidden-toys
     ├── CatSkyWonders.tsx       # /games/sky-wonders
     └── CatFishing.tsx          # /games/fishing
 ```
 
-Layers, from the bottom up: **presets & tokens** → **renderer** → **shared utils** → **game components** → **route wrappers**.
+Layers, from the bottom up: **presets & tokens** → **renderer** → **shared utils** → **game rules** → **game components** → **route wrappers**.
+
+### 2b. Testable Game Rules
+
+Game *rules* belong in a plain `.ts` module beside the component, not inline in
+it. `music-song.ts` holds the chart generator, the timing windows and the
+scoring functions; `CatMusicBand.tsx` only renders and wires up input. Keep the
+rules pure so they can be exercised without a browser.
 
 ## Shared Character System
 

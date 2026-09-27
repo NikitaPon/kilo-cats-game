@@ -14,7 +14,7 @@ const games = [
   {
     id: "music-band",
     title: "Кошачий Оркестр",
-    description: "Создавайте музыку с нашими талантливыми котами-музыкантами!",
+    description: "Ритм-игра: ловите ноты клавишами A, S и D!",
     emoji: "🎵",
     color: "from-blue-500 to-cyan-500",
     href: "/games/music-band",

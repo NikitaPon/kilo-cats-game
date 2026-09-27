@@ -57,11 +57,19 @@ A collection of fun mini-games featuring two adorable cats (Miuska and Aliska). 
 - **Interactions**: Press Space or click to trigger random trick
 
 ### Game 2: Cat Music Band (`/games/music-band`)
-- **Stage Setting**: Theater background with curtains and spotlights
-- **8 Instruments**: Drum, Bell, Xylophone, Piano, Guitar, Trumpet, Violin, Maraca
-- **Music Creation**: Cats play random instruments with synthesized sounds
-- **Visual Effects**: Floating music notes, sound waves, instrument animations
-- **Interactions**: Press Space or click to start a jam session
+- **3-Lane Rhythm Game** — rebuilt from a scripted 2-second animation into real
+  skill-based play
+- **Each cat owns a lane and an instrument**: Миуска (A) → 🎸 Гитара, Вики (S) → 🔔 Колокольчик, Алиска (D) → 🎺 Труба
+- **Controls**: A/S/D (also arrows, 1/2/3, F/G/H) or tap the lane on touch
+- **Chart**: generated per song on a 16th-note grid at 100 BPM, 12 bars (~29s), density
+  ramping up; chords from bar 7; never two notes in one lane closer than 0.2s
+- **Judgement**: Perfect ±60ms, Good ±130ms; anything past the window is a miss
+- **Scoring**: Perfect 100 / Good 50, × a combo multiplier up to ×4, accuracy counts a
+  good as half a perfect, grade S→D, best score in `localStorage`
+- **Feel**: 2.2s countdown, beat guides, hit-line flash, squash-and-happy-face on the
+  cat that played, sparkle burst, and a backing bass + click track scheduled up front
+- **Audio**: the backing track is scheduled in one synchronous block so every tone
+  shares a base time and stays locked to the visual clock
 
 ### Game 3: Hidden Toys (`/games/hidden-toys`)
 - **Room Setting**: Cozy room with window, wallpaper, and wooden floor
@@ -108,10 +116,11 @@ System" for the full contract.
 
 ## Current Focus
 
-The game collection has five mini-games, one of which is skill-based. Ideas that
-would add the most: a game where the player *steers* a cat (mouse/arrows), a
-platformer, and a rhythm game reusing the Music Band synth. Also still missing:
-scores across games and sound settings. Adding a cat is now just a preset.
+Five mini-games, two of which are skill-based (Fishing, Music Band). The most
+valuable additions now would be ones where the player **steers** a cat: a mouse
+or arrow-key chaser, a platformer, or a maze. Still missing: scores shared across
+games and sound settings. Adding a cat is just a preset; adding a lane/instrument
+is one entry in `LANE_INSTRUMENTS`.
 
 ## Quick Start Guide
 
@@ -194,3 +203,4 @@ export async function GET() {
 | 2026-09-27 | Refactored architecture: cats moved to `src/characters/` (shared renderer `drawCat`, palette `CAT_COLORS`, motion `CAT_MOTION`, presets `CAT_PRESETS`). Removed ~4 copies of the 190-line sprite from the games. Fixed legacy Миднайт/Орео names. Verified all 26 render paths produce identical canvas geometry to the originals |
 | 2026-09-27 | Added third cat **Вики** (grey kitten, brown eyes, scale 0.75) to all four games. `CatGame`/`CatMusicBand` switched from two hardcoded cat refs to a `catsRef` array + `STAGE_MARKS`; tricks now receive `cats: Cat[]` so all three cats perform. Fixed `CatHiddenToys` seeker hardcoded to `Math.random() > 0.5 ? 0 : 1`, which excluded the third cat. Added `castNames()` for prose |
 | 2026-09-27 | Added 5th mini-game **Кошачья Рыбалка** (`/games/fishing`) — the first skill/timing game with a score, a streak multiplier and a persisted best. Extracted the AudioContext that was copy-pasted in all 4 games into `src/lib/audio.ts` (`getAudioContext`, `playTone`, `playSequence`). Added a cast line to `CatHiddenToys`, which was the only game whose UI named no cats |
+| 2026-09-27 | Rebuilt **Кошачий Оркестр** as a 3-lane rhythm game (was the dullest: press Space → 2s of canned animation, no input during it, no score). Each cat now owns a lane + instrument; notes fall on a 16th grid; Perfect/Good judgement, combo multiplier, accuracy grade, persisted best. Song data and judgement rules live in `src/components/music-song.ts` so the generator is testable without a browser. Moved the hit line to y=250 and the key hints to the lane header after tests showed key caps would be hidden behind the cats |
