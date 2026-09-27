@@ -5,7 +5,7 @@
  * can be exercised without a browser.
  */
 
-import { CAT_PRESETS, type CatId } from "@/characters";
+import { CAT_IDS, CAT_PRESETS, type CatId } from "@/characters";
 
 export const LANE_COUNT = 3;
 
@@ -57,7 +57,7 @@ export interface ChartNote {
 
 export interface LaneInstrument {
   /** Cat that plays this lane. */
-  catId: CatId;
+  catId: LaneCatId;
   name: string;
   emoji: string;
   color: string;
@@ -109,21 +109,36 @@ export const LANE_INSTRUMENTS: LaneInstrument[] = [
 
 export const CANVAS_HEIGHT = 500;
 
-/** Stage marks per cat, relative to the canvas centre / bottom edge. */
-export const STAGE_MARKS: Record<CatId, { x: number; y: number }> = {
+/**
+ * Three lanes, three players. Only these three cats hold an instrument; any
+ * other cat in the cast sits to the side and watches.
+ */
+export const LANE_CATS = ["Miuska", "Viki", "Aliska"] as const;
+export type LaneCatId = (typeof LANE_CATS)[number];
+
+/** Cats with no lane, so they spectate instead of standing in for one. */
+export const SPECTATOR_CATS: CatId[] = CAT_IDS.filter(
+  (id) => !(LANE_CATS as readonly string[]).includes(id)
+);
+
+/** Where a spectating cat sits: side stage, drawn smaller to read as further back. */
+export const SPECTATOR_SPOT = { x: 92, scale: 0.7 };
+
+/** Stage marks for the three playing cats, relative to the canvas centre / bottom edge. */
+export const STAGE_MARKS: Record<LaneCatId, { x: number; y: number }> = {
   Miuska: { x: -140, y: -150 },
   Aliska: { x: 140, y: -160 },
   Viki: { x: 0, y: -137 },
 };
 
 /** Y of a cat's body centre, so its feet land on the stage floor. */
-export const stageY = (id: CatId) => CANVAS_HEIGHT + STAGE_MARKS[id].y;
+export const stageY = (id: LaneCatId) => CANVAS_HEIGHT + STAGE_MARKS[id].y;
 
 /** Top of a cat's ears in canvas pixels — the hit line must stay above it. */
-export const earTipY = (id: CatId) => stageY(id) - EAR_TIP_Y * CAT_PRESETS[id].scale;
+export const earTipY = (id: LaneCatId) => stageY(id) - EAR_TIP_Y * CAT_PRESETS[id].scale;
 
-/** Lane index of each cat, so notes land on the cat that plays them. */
-export const LANE_BY_CAT: Record<CatId, number> = {
+/** Lane index of each playing cat, so notes land on the cat that plays them. */
+export const LANE_BY_CAT: Record<LaneCatId, number> = {
   Miuska: 0,
   Viki: 1,
   Aliska: 2,

@@ -78,10 +78,11 @@ const RESULT_MS = 1100;
 const BITE_LIMIT_MS = 3200;
 
 /** Where each cat stands on the bank, relative to the canvas centre. */
-const STAGE_MARKS: Record<CatId, number> = {
-  Miuska: -170,
-  Aliska: 170,
-  Viki: 0,
+export const STAGE_MARKS: Record<CatId, number> = {
+  Miuska: -190,
+  Aliska: 190,
+  Viki: -63,
+  Yashka: 63,
 };
 
 export const FISH_TYPES: Fish[] = [

@@ -3,8 +3,8 @@
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 
-import { CAT_IDS, CAT_MOTION, catName, drawCat as drawCatSprite, getCatPreset } from "@/characters";
-import type { CatActor, CatId } from "@/characters";
+import { CAT_MOTION, catName, drawCat as drawCatSprite, getCatPreset } from "@/characters";
+import type { CatActor } from "@/characters";
 import { playSequence, playTone } from "@/lib/audio";
 import {
   APPROACH,
@@ -14,12 +14,15 @@ import {
   HIT_LINE_Y,
   LANE_BY_CAT,
   LANE_COUNT,
+  LANE_CATS,
   LANE_INSTRUMENTS,
   LANE_KEYS,
   LEAD_IN,
   NOTE_HEIGHT,
   SONG_LENGTH,
   SPAWN_Y,
+  SPECTATOR_CATS,
+  SPECTATOR_SPOT,
   STAGE_MARKS,
   buildBackingTrack,
   buildChart,
@@ -30,10 +33,13 @@ import {
   summarise,
   type ChartNote,
   type Judgement,
+  type LaneCatId,
   type Summary,
 } from "./music-song";
 
-interface Cat extends CatActor {
+/** Only the lane cats get an actor; spectators have no lane to play. */
+interface Cat extends Omit<CatActor, "id"> {
+  id: LaneCatId;
   /** 0..1, decays after each hit. Drives the squash and the happy face. */
   strike: number;
 }
@@ -103,7 +109,7 @@ const noteY = (noteTime: number, songTime: number) => {
   return HIT_LINE_Y - (noteTime - songTime) * pixelsPerSecond;
 };
 
-const createCat = (id: CatId, width: number, height: number): Cat => ({
+const createCat = (id: LaneCatId, width: number, height: number): Cat => ({
   id,
   x: width / 2 + STAGE_MARKS[id].x,
   y: height + STAGE_MARKS[id].y,
@@ -282,7 +288,7 @@ export default function CatMusicBand() {
     const resize = () => {
       canvas.width = Math.min(800, window.innerWidth - 40);
       canvas.height = CANVAS_HEIGHT;
-      catsRef.current = CAT_IDS.map((id) => createCat(id, canvas.width, canvas.height));
+      catsRef.current = LANE_CATS.map((id) => createCat(id, canvas.width, canvas.height));
     };
     resize();
     window.addEventListener("resize", resize);
@@ -547,20 +553,20 @@ export default function CatMusicBand() {
       }
     };
 
-    const drawCountdown = (state: GameState, width: number) => {
+    const drawCountdown = (state: GameState, width: number, height: number) => {
       const remaining = Math.ceil(-state.songTime);
       if (remaining < 1 || remaining > 3) return;
       ctx.fillStyle = "rgba(0,0,0,0.3)";
-      ctx.fillRect(0, 0, width, CANVAS_HEIGHT);
+      ctx.fillRect(0, 0, width, height);
       ctx.fillStyle = "#FFFFFF";
       ctx.font = "bold 96px Arial";
       ctx.textAlign = "center";
-      ctx.fillText(String(remaining), width / 2, CANVAS_HEIGHT / 2 + 24);
+      ctx.fillText(String(remaining), width / 2, height / 2 + 24);
       ctx.textAlign = "left";
     };
 
-    const drawPrompt = (width: number) => {
-      const y = CANVAS_HEIGHT / 2 - 44;
+    const drawPrompt = (width: number, height: number) => {
+      const y = height / 2 - 44;
       ctx.fillStyle = "rgba(0,0,0,0.45)";
       ctx.beginPath();
       ctx.roundRect(width / 2 - 220, y, 440, 76, 14);
@@ -684,11 +690,27 @@ export default function CatMusicBand() {
       });
 
       // --- draw ---
-      ctx.clearRect(0, 0, width, CANVAS_HEIGHT);
+      const height = CANVAS_HEIGHT;
+      ctx.clearRect(0, 0, width, height);
       const running = state.phase === "countdown" || state.phase === "playing";
-      drawBackground(width, CANVAS_HEIGHT, time);
+      drawBackground(width, height, time);
       drawLanes(width, state.songTime, running);
       if (running) drawNotes(width, state.songTime);
+
+      // Cats with no lane sit to the side and watch.
+      SPECTATOR_CATS.forEach((id, i) => {
+        const bob = Math.sin(time * 1.2 + i * 1.9) * 4;
+        drawCatSprite(ctx, {
+          preset: getCatPreset(id),
+          x: SPECTATOR_SPOT.x,
+          y: height + STAGE_MARKS.Miuska.y + bob,
+          scaleX: SPECTATOR_SPOT.scale,
+          scaleY: SPECTATOR_SPOT.scale,
+          time,
+          expression: running ? "happy" : "squint",
+          tailWag: running ? undefined : Math.sin(time * 1.1) * 0.18,
+        });
+      });
 
       catsRef.current.forEach((cat) => {
         const bop =
@@ -712,9 +734,9 @@ export default function CatMusicBand() {
 
       drawBursts(dt);
       if (running) drawHud(state, width);
-      if (state.phase === "countdown") drawCountdown(state, width);
-      if (state.phase === "idle") drawPrompt(width);
-      if (state.phase === "results") drawResults(state, width, CANVAS_HEIGHT);
+      if (state.phase === "countdown") drawCountdown(state, width, height);
+      if (state.phase === "idle") drawPrompt(width, height);
+      if (state.phase === "results") drawResults(state, width, height);
 
       animationRef.current = requestAnimationFrame(animate);
     };
@@ -819,13 +841,18 @@ export default function CatMusicBand() {
       <div className="mt-6 text-center text-amber-200 text-sm">
         <p>
           Наши музыканты:{" "}
-          {CAT_IDS.map((id, i) => (
+          {LANE_CATS.map((id, i) => (
             <Fragment key={id}>
-              {i > 0 && (i === CAT_IDS.length - 1 ? " и " : ", ")}
+              {i > 0 && (i === LANE_CATS.length - 1 ? " и " : ", ")}
               <span className="font-semibold text-white">{catName(id)}</span>
             </Fragment>
           ))}
         </p>
+        {SPECTATOR_CATS.length > 0 && (
+          <p className="mt-1 text-amber-300/80">
+            На диване: {SPECTATOR_CATS.map((id) => catName(id)).join(", ")}
+          </p>
+        )}
       </div>
     </div>
   );

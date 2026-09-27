@@ -68,6 +68,29 @@ export const CAT_PRESETS: Record<CatId, CatPreset> = {
     height: 53,
     balloonColor: "#9B59B6",
   },
+  Yashka: {
+    id: "Yashka",
+    name: "Yashka",
+    displayName: "Яшка",
+    description: "чёрный котёнок с серо-голубым хвостиком",
+    colors: {
+      fur: CAT_COLORS.fur,
+      markings: null,
+      eyes: "#6EC1E4",
+      innerEar: CAT_COLORS.innerEar,
+      nose: CAT_COLORS.nose,
+      eyeWhite: CAT_COLORS.eyeWhite,
+      pupil: CAT_COLORS.pupil,
+      mouth: CAT_COLORS.mouth,
+      whisker: CAT_COLORS.whisker,
+      // His tail is the one thing that is not black.
+      tail: "#7FA0BC",
+    },
+    scale: 0.65,
+    width: 52,
+    height: 46,
+    balloonColor: "#FF8C42",
+  },
 };
 
 export const CAT_IDS = Object.keys(CAT_PRESETS) as CatId[];

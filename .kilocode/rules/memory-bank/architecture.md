@@ -91,7 +91,14 @@ drawCat(ctx, {
 7. **Hold the cast in an array, not named refs.** Games keep `catsRef`/`useState`
    arrays of actors and iterate them, rather than `cat1Ref`/`cat2Ref`. Anything
    that picks "a cat" must derive from `cats.length`, never a hardcoded index.
-8. **Place cats via a `STAGE_MARKS: Record<CatId, { x, y }>`** table rather than
+   Per-cat variation goes in a parameter table indexed by cast order with a
+   `param(table, i)` helper that clamps to the last entry, so a new cat
+   participates without editing every rule.
+8. **Not every game can host every cat.** A game with a fixed number of slots
+   (the music band has 3 lanes) must split the cast explicitly into players and
+   spectators, and draw the spectators somewhere clear. Do not force a cat into a
+   slot meant for another.
+9. **Place cats via a `STAGE_MARKS: Record<CatId, { x, y }>`** table rather than
    inline coordinates. A cat's anchor is its body centre, so ground-align the
    three by scaling the offset from the feet: `y = floorY - 53 * preset.scale`.
    That keeps a new cat standing on the same floor as the others.

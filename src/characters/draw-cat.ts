@@ -237,7 +237,7 @@ export function drawCat(ctx: CanvasRenderingContext2D, options: CatSpriteOptions
 
   applyCatTransform(ctx, options);
 
-  drawTail(ctx, colors.fur, tailWag);
+  drawTail(ctx, colors.tail ?? colors.fur, tailWag);
   drawBackLegs(ctx, colors.fur);
   drawBody(ctx, colors.fur, markings);
   drawFrontLegs(ctx, colors.fur, pawOffset);

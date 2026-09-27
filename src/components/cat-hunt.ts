@@ -157,13 +157,13 @@ export const roundProgress = (elapsed: number) => clamp(elapsed / ROUND_SECONDS,
 
 /** The three cats: one plays, two watch from the couch. */
 export const PLAYER_CAT: CatId = "Miuska";
-export const SPECTATORS: CatId[] = ["Aliska", "Viki"];
+export const SPECTATORS: CatId[] = ["Aliska", "Viki", "Yashka"];
 
 /** Where a spectator sits on the couch. */
 export function spectatorPosition(id: CatId): { x: number; y: number } {
   const index = SPECTATORS.indexOf(id);
   const centre = COUCH.bottom - 20;
-  const spread = 150;
+  const spread = 170;
   return {
     x: CANVAS_WIDTH / 2 + (index - (SPECTATORS.length - 1) / 2) * spread,
     y: centre,

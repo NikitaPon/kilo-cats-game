@@ -6,7 +6,7 @@
  * rendered by `drawCat`, so a cat looks identical in every mini-game.
  */
 
-export type CatId = "Miuska" | "Aliska" | "Viki";
+export type CatId = "Miuska" | "Aliska" | "Viki" | "Yashka";
 
 /** Colors a single cat is drawn with. */
 export interface CatColors {
@@ -25,6 +25,8 @@ export interface CatColors {
   pupil: string;
   mouth: string;
   whisker: string;
+  /** Tail color. Omitted means the tail matches `fur`. */
+  tail?: string;
 }
 
 /** Face expression, applied on top of the shared sprite. */

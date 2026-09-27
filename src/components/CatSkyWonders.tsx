@@ -6,6 +6,10 @@ import { castNames, drawCat as drawCatSprite, getCatPreset } from "@/characters"
 import type { CatActor } from "@/characters";
 import { getAudioContext } from "@/lib/audio";
 
+// The stretch of field the cats spread across when they jump.
+const FIELD_LEFT = 90;
+const FIELD_RIGHT = 710;
+
 // Types
 interface FallingItem {
   id: number;
@@ -70,9 +74,10 @@ export default function CatSkyWonders() {
   // Use refs for game state to avoid re-renders during animation
   const itemsRef = useRef<FallingItem[]>([]);
   const catsRef = useRef<Cat[]>([
-    { x: 250, y: 420, baseY: 420, jumping: false, jumpHeight: 0, jumpPhase: 0, targetX: null, id: "Miuska" },
-    { x: 550, y: 430, baseY: 430, jumping: false, jumpHeight: 0, jumpPhase: 0, targetX: null, id: "Aliska" },
-    { x: 400, y: 425, baseY: 425, jumping: false, jumpHeight: 0, jumpPhase: 0, targetX: null, id: "Viki" },
+    { x: 200, y: 420, baseY: 420, jumping: false, jumpHeight: 0, jumpPhase: 0, targetX: null, id: "Miuska" },
+    { x: 600, y: 430, baseY: 430, jumping: false, jumpHeight: 0, jumpPhase: 0, targetX: null, id: "Aliska" },
+    { x: 350, y: 425, baseY: 425, jumping: false, jumpHeight: 0, jumpPhase: 0, targetX: null, id: "Viki" },
+    { x: 450, y: 427, baseY: 427, jumping: false, jumpHeight: 0, jumpPhase: 0, targetX: null, id: "Yashka" },
   ]);
   const cloudsRef = useRef<Cloud[]>([...INITIAL_CLOUDS]);
   const caughtCountRef = useRef(0);
@@ -169,12 +174,15 @@ export default function CatSkyWonders() {
 
     itemsRef.current = newItems;
 
-    // Make cats start jumping, each aiming for its own stretch of the field
+    // Make cats start jumping, each aiming for its own stretch of the field.
+    // The field is split by head count, so the targets stay on canvas no
+    // matter how many cats are in the cast.
+    const slice = (FIELD_RIGHT - FIELD_LEFT) / catsRef.current.length;
     catsRef.current = catsRef.current.map((cat, i) => ({
       ...cat,
       jumping: true,
       jumpPhase: Math.random() * Math.PI * 2,
-      targetX: 120 + i * 200 + Math.random() * 140,
+      targetX: FIELD_LEFT + i * slice + Math.random() * Math.max(1, slice - 80),
     }));
 
     // Stop after a few seconds

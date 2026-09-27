@@ -25,6 +25,7 @@ A collection of fun mini-games featuring two adorable cats (Miuska and Aliska). 
 - [x] **Cat Fishing** mini-game (`/games/fishing`) — first timing/skill game
 - [x] **Cat Music Band** rebuilt as a 3-lane rhythm game
 - [x] **Cat Hunt** mini-game (`/games/hunt`) — first game where you steer a cat
+- [x] **Fourth cat "Yashka"** (black kitten, grey-blue tail) added to all six games
 
 ## Current Structure
 
@@ -116,20 +117,40 @@ A collection of fun mini-games featuring two adorable cats (Miuska and Aliska). 
 
 ## Cat Characters
 
-All games feature the same three cats, defined once in `src/characters/cats.ts` and
+All games feature the same four cats, defined once in `src/characters/cats.ts` and
 drawn by the single shared renderer in `src/characters/draw-cat.ts`:
 - **Miuska (Миуска)**: Medium-sized, completely black with yellow eyes (scale 1)
-- **Aliska (Алиска)**: Large-sized, black back with white belly, black-white paws and face, green eyes (scale 1.2)
-- **Viki (Вики)**: Small grey kitten, entirely grey with brown eyes, the smallest of the three (scale 0.75)
+- **Aliska (Алиска)**: Largest, black back with white belly, black-white paws and face, green eyes (scale 1.2)
+- **Viki (Вики)**: Small grey kitten, entirely grey with brown eyes (scale 0.75)
+- **Yashka (Яшка)**: Smallest black kitten with a grey-blue tail and ice-blue eyes (scale 0.65)
 
 Every cat shares the same silhouette; they differ only in `scale`, `colors` and
-`balloonColor`. `markings: null` means a solid single-colour cat (Miuska, Viki);
-`markings: <colour>` adds the white belly, paws and face blaze (Aliska).
+`balloonColor`. `markings: null` means a solid single-colour cat (Miuska, Viki,
+Yashka); `markings: <colour>` adds the white belly, paws and face blaze (Aliska).
+`colors.tail` is optional and overrides just the tail — only Yashka uses it.
 
 **Never hardcode cat colors, proportions or motion constants in a game.** Import
 from `@/characters` and pass a preset plus placement/expression. Use `castNames()`
 for prose that lists the whole cast. See `architecture.md` → "Shared Character
 System" for the full contract.
+
+### When the cast grows
+
+Adding a cat is a preset — but a game only keeps working if it handles the new
+cat. Checklist, in the order the compiler will force on you:
+
+1. `CatId` in `src/characters/types.ts` and a `CatPreset` in `cats.ts`.
+2. Any `Record<CatId, ...>` layout table gets a new entry — TypeScript will not
+   let this be forgotten.
+3. **Music band has 3 lanes.** A fourth cat cannot hold a lane, so
+   `LANE_CATS` + `SPECTATOR_CATS` split the cast; spectators sit side stage.
+4. **Trick tables are indexed by cast order.** Acrobatic tricks read
+   `param(TABLE, i)`, which reuses the last entry for any extra cat, so a new cat
+   performs with no trick changes — but the tables should still grow so the
+   newcomer is not a clone.
+5. Games that spawn cats by hand (`CatHiddenToys`, `CatSkyWonders`) need a new
+   entry; nothing will catch it.
+6. Re-check that nobody overlaps on a crowded stage.
 
 ## Current Focus
 
@@ -220,5 +241,6 @@ export async function GET() {
 | 2026-09-27 | Refactored architecture: cats moved to `src/characters/` (shared renderer `drawCat`, palette `CAT_COLORS`, motion `CAT_MOTION`, presets `CAT_PRESETS`). Removed ~4 copies of the 190-line sprite from the games. Fixed legacy Миднайт/Орео names. Verified all 26 render paths produce identical canvas geometry to the originals |
 | 2026-09-27 | Added third cat **Вики** (grey kitten, brown eyes, scale 0.75) to all four games. `CatGame`/`CatMusicBand` switched from two hardcoded cat refs to a `catsRef` array + `STAGE_MARKS`; tricks now receive `cats: Cat[]` so all three cats perform. Fixed `CatHiddenToys` seeker hardcoded to `Math.random() > 0.5 ? 0 : 1`, which excluded the third cat. Added `castNames()` for prose |
 | 2026-09-27 | Added 5th mini-game **Кошачья Рыбалка** (`/games/fishing`) — the first skill/timing game with a score, a streak multiplier and a persisted best. Extracted the AudioContext that was copy-pasted in all 4 games into `src/lib/audio.ts` (`getAudioContext`, `playTone`, `playSequence`). Added a cast line to `CatHiddenToys`, which was the only game whose UI named no cats |
+| 2026-09-27 | Added fourth cat **Яшка** (black kitten, grey-blue tail, ice-blue eyes, scale 0.65) to all six games. Added optional `colors.tail` to the character system so a cat can have a differently-coloured tail. Split the music band into `LANE_CATS` + `SPECTATOR_CATS` (3 lanes, 4 cats) and gave the chase game a third spectator. Rewrote the 8 acrobatics tricks to read per-cat parameter tables so the whole cast performs — verified against the originals to be identical for the first three cats. Fixed SkyWonders jump targets, which assumed 3 cats and would have sent the 4th off-canvas |
 | 2026-09-27 | Added 6th mini-game **Кот-Охотник** (`/games/hunt`) — the first game where the player steers a cat: mouse or WASD/arrows, 60s round, mice that flee and bounce off walls, rare golden mouse, combo multiplier, wall clock timer. Алиска and Вики sit on the couch watching. Rules live in `src/components/cat-hunt.ts`. Raised the combo step from 4 to 6 catches after tests showed the ×5 cap was reachable in 16 catches |
 | 2026-09-27 | Rebuilt **Кошачий Оркестр** as a 3-lane rhythm game (was the dullest: press Space → 2s of canned animation, no input during it, no score). Each cat now owns a lane + instrument; notes fall on a 16th grid; Perfect/Good judgement, combo multiplier, accuracy grade, persisted best. Song data and judgement rules live in `src/components/music-song.ts` so the generator is testable without a browser. Moved the hit line to y=250 and the key hints to the lane header after tests showed key caps would be hidden behind the cats |

@@ -1,10 +1,11 @@
 "use client";
 
-import { Fragment, useEffect, useRef, useState, useCallback, useMemo } from "react";
+import { Fragment, useEffect, useRef, useState, useCallback } from "react";
 
 import { CAT_COLORS, CAT_IDS, catName, drawCat as drawCatSprite, drawCatBalloon, getCatPreset } from "@/characters";
 import type { CatActor, CatId } from "@/characters";
 import { getAudioContext } from "@/lib/audio";
+import { CAST, STAGE_MARKS, TRICKS, type Trick } from "./cat-acrobatics";
 
 interface Cat extends CatActor {
   baseY: number;
@@ -21,22 +22,7 @@ interface Cat extends CatActor {
   starOpacity: number;
 }
 
-interface Trick {
-  name: string;
-  duration: number;
-  sound: "jump" | "spin" | "balloon" | "star" | "stack" | "swim" | "rocket" | "dance";
-  execute: (progress: number, cats: Cat[]) => void;
-}
 
-/** Stage marks per cat, relative to the canvas centre / bottom edge. */
-const STAGE_MARKS: Record<CatId, { x: number; y: number }> = {
-  Miuska: { x: -170, y: -150 },
-  Aliska: { x: 170, y: -160 },
-  Viki: { x: 0, y: -137 },
-};
-
-/** The full cast that performs on this stage. */
-const CAST = CAT_IDS;
 
 // Play trick-specific sounds
 const playTrickSound = (type: Trick["sound"]) => {
@@ -251,258 +237,7 @@ export default function CatGame() {
     isBlinking: false,
   });
 
-  const tricks: Trick[] = useMemo(() => [
-    {
-      name: "Двойной прыжок и Дай пять!",
-      duration: 2000,
-      sound: "jump",
-      execute: (progress, [cat1, cat2, cat3]) => {
-        // Both cats jump up
-        const jumpPhase = Math.sin(progress * Math.PI);
-        cat1.y = cat1.baseY - jumpPhase * 150;
-        cat2.y = cat2.baseY - jumpPhase * 120;
-        cat3.y = cat3.baseY - jumpPhase * 110;
-        
-        // Rotate during jump
-        cat1.rotation = Math.sin(progress * Math.PI * 2) * 0.3;
-        cat2.rotation = -Math.sin(progress * Math.PI * 2) * 0.3;
-        cat3.rotation = Math.sin(progress * Math.PI * 2) * 0.25;
-        
-        // Stretch effect
-        cat1.scaleY = 1 + jumpPhase * 0.2;
-        cat2.scaleY = 1 + jumpPhase * 0.15;
-        cat3.scaleY = 1 + jumpPhase * 0.18;
-      },
-    },
-    {
-      name: "Сальто-симфония!",
-      duration: 2500,
-      sound: "spin",
-      execute: (progress, [cat1, cat2, cat3]) => {
-        // Full rotation somersaults
-        cat1.rotation = progress * Math.PI * 4;
-        cat2.rotation = -progress * Math.PI * 4;
-        cat3.rotation = progress * Math.PI * 3;
-        
-        // Bounce up during somersault
-        const bounce = Math.abs(Math.sin(progress * Math.PI * 2));
-        cat1.y = cat1.baseY - bounce * 100;
-        cat2.y = cat2.baseY - bounce * 80;
-        cat3.y = cat3.baseY - bounce * 90;
-        
-        // Squash and stretch
-        cat1.scaleX = 1 + Math.sin(progress * Math.PI * 4) * 0.2;
-        cat1.scaleY = 1 - Math.sin(progress * Math.PI * 4) * 0.2;
-        cat2.scaleX = 1 + Math.sin(progress * Math.PI * 4 + 0.5) * 0.2;
-        cat2.scaleY = 1 - Math.sin(progress * Math.PI * 4 + 0.5) * 0.2;
-        cat3.scaleX = 1 + Math.sin(progress * Math.PI * 3) * 0.2;
-        cat3.scaleY = 1 - Math.sin(progress * Math.PI * 3) * 0.2;
-      },
-    },
-    {
-      name: "Превращение в шарики!",
-      duration: 3000,
-      sound: "balloon",
-      execute: (progress, cats) => {
-        // Transform into balloons
-        const [cat1, cat2, cat3] = cats;
-        if (progress < 0.3) {
-          // Inflate
-          const inflate = progress / 0.3;
-          cats.forEach((cat) => {
-            cat.isBalloon = true;
-            cat.scaleX = 1 + inflate * 0.3;
-            cat.scaleY = 1 + inflate * 0.5;
-          });
-        } else if (progress < 0.7) {
-          // Float around
-          const floatProgress = (progress - 0.3) / 0.4;
-          cat1.y = cat1.baseY - 100 - Math.sin(floatProgress * Math.PI * 3) * 30;
-          cat2.y = cat2.baseY - 80 - Math.sin(floatProgress * Math.PI * 3 + 1) * 30;
-          cat3.y = cat3.baseY - 70 - Math.sin(floatProgress * Math.PI * 3 + 2) * 30;
-          cat1.x += Math.sin(floatProgress * Math.PI * 2) * 2;
-          cat2.x -= Math.sin(floatProgress * Math.PI * 2) * 2;
-          cat3.x += Math.sin(floatProgress * Math.PI * 2 + 1) * 1.5;
-        } else {
-          // Deflate back
-          const deflate = 1 - (progress - 0.7) / 0.3;
-          cats.forEach((cat) => {
-            cat.scaleX = 1 + deflate * 0.3;
-            cat.scaleY = 1 + deflate * 0.5;
-          });
-          cat1.y = cat1.baseY - deflate * 100;
-          cat2.y = cat2.baseY - deflate * 80;
-          cat3.y = cat3.baseY - deflate * 70;
-          if (progress > 0.95) {
-            cats.forEach((cat) => {
-              cat.isBalloon = false;
-            });
-          }
-        }
-      },
-    },
-    {
-      name: "Ловля звёзд!",
-      duration: 2500,
-      sound: "star",
-      execute: (progress, cats) => {
-        // Stars fall and cats catch them
-        const [cat1, cat2, cat3] = cats;
-        if (progress < 0.5) {
-          // Stars falling
-          cats.forEach((cat) => {
-            cat.hasStar = true;
-            cat.starY = -50 + progress * 2 * 250;
-            cat.starOpacity = 1;
-          });
-          
-          // Cats reach up
-          const reach = Math.sin(progress * Math.PI * 2);
-          cat1.y = cat1.baseY - reach * 30;
-          cat2.y = cat2.baseY - reach * 25;
-          cat3.y = cat3.baseY - reach * 28;
-          cat1.rotation = reach * 0.2;
-          cat2.rotation = -reach * 0.2;
-          cat3.rotation = reach * 0.25;
-        } else {
-          // Caught! Celebrate
-          const celebrate = (progress - 0.5) / 0.5;
-          cats.forEach((cat) => {
-            cat.starY = 0;
-            cat.starOpacity = 1 - celebrate;
-          });
-          
-          // Happy bounce
-          cat1.y = cat1.baseY - Math.abs(Math.sin(celebrate * Math.PI * 3)) * 50;
-          cat2.y = cat2.baseY - Math.abs(Math.sin(celebrate * Math.PI * 3 + 0.5)) * 40;
-          cat3.y = cat3.baseY - Math.abs(Math.sin(celebrate * Math.PI * 3 + 1)) * 45;
-          
-          if (progress > 0.9) {
-            cats.forEach((cat) => {
-              cat.hasStar = false;
-            });
-          }
-        }
-      },
-    },
-    {
-      name: "Кошачья башня!",
-      duration: 2000,
-      sound: "stack",
-      execute: (progress, [cat1, cat2, cat3]) => {
-        // One cat jumps on top of the other
-        if (progress < 0.4) {
-          // Preparation - cats move together
-          const prep = progress / 0.4;
-          cat1.x = cat1.x + (cat2.x - cat1.x) * prep * 0.3;
-          cat1.y = cat1.baseY - prep * 100;
-          cat2.scaleY = 0.8 + prep * 0.2;
-        } else if (progress < 0.7) {
-          // Landing on top
-          const land = (progress - 0.4) / 0.3;
-          cat1.y = cat2.baseY - getCatPreset(cat2.id).height - 20 + land * 20;
-          cat1.rotation = land * Math.PI * 2;
-          cat2.scaleY = 0.8;
-        } else {
-          // Jump off
-          const off = (progress - 0.7) / 0.3;
-          cat1.y = cat1.baseY - Math.sin(off * Math.PI) * 80;
-          cat1.rotation = off * Math.PI * 2;
-          cat2.scaleY = 0.8 + off * 0.2;
-        }
-        // The kitten watches the tower eagerly
-        const watch = Math.sin(progress * Math.PI * 3);
-        cat3.rotation = watch * 0.15;
-        cat3.y = cat3.baseY - Math.abs(watch) * 18;
-      },
-    },
-    {
-      name: "Синхронное плавание!",
-      duration: 2500,
-      sound: "swim",
-      execute: (progress, [cat1, cat2, cat3]) => {
-        // Wave-like swimming motion
-        const wave = Math.sin(progress * Math.PI * 4);
-        cat1.y = cat1.baseY - 50 + wave * 30;
-        cat2.y = cat2.baseY - 40 - wave * 30;
-        cat3.y = cat3.baseY - 30 - wave * 20;
-        cat1.rotation = wave * 0.4;
-        cat2.rotation = -wave * 0.4;
-        cat3.rotation = -wave * 0.3;
-        cat1.x = cat1.x + Math.cos(progress * Math.PI * 2) * 2;
-        cat2.x = cat2.x - Math.cos(progress * Math.PI * 2) * 2;
-        cat3.x = cat3.x + Math.cos(progress * Math.PI * 2 + 1) * 1;
-        
-        // Stretch for swimming effect
-        cat1.scaleX = 1 + Math.abs(wave) * 0.1;
-        cat2.scaleX = 1 + Math.abs(wave) * 0.1;
-        cat3.scaleX = 1 + Math.abs(wave) * 0.12;
-      },
-    },
-    {
-      name: "Ракетный запуск!",
-      duration: 2000,
-      sound: "rocket",
-      execute: (progress, cats) => {
-        const [cat1, cat2, cat3] = cats;
-        if (progress < 0.3) {
-          // Crouch down
-          const crouch = progress / 0.3;
-          cats.forEach((cat) => {
-            cat.scaleY = 1 - crouch * 0.3;
-            cat.y = cat.baseY + crouch * 20;
-          });
-        } else if (progress < 0.6) {
-          // Launch up!
-          const launch = (progress - 0.3) / 0.3;
-          cat1.scaleY = 1.3;
-          cat2.scaleY = 1.3;
-          cat3.scaleY = 1.3;
-          cat1.y = cat1.baseY - launch * 200;
-          cat2.y = cat2.baseY - launch * 180;
-          cat3.y = cat3.baseY - launch * 210;
-          cat1.rotation = launch * 0.3;
-          cat2.rotation = -launch * 0.3;
-          cat3.rotation = launch * 0.25;
-        } else {
-          // Fall back
-          const fall = (progress - 0.6) / 0.4;
-          cat1.y = cat1.baseY - 200 + fall * 200;
-          cat2.y = cat2.baseY - 180 + fall * 180;
-          cat3.y = cat3.baseY - 210 + fall * 210;
-          cat1.rotation = (1 - fall) * 0.3;
-          cat2.rotation = -(1 - fall) * 0.3;
-          cat3.rotation = (1 - fall) * 0.25;
-          cats.forEach((cat) => {
-            cat.scaleY = 1.3 - fall * 0.3;
-          });
-        }
-      },
-    },
-    {
-      name: "Зеркальный танец!",
-      duration: 2000,
-      sound: "dance",
-      execute: (progress, [cat1, cat2, cat3]) => {
-        // Mirror each other's movements
-        const dance = Math.sin(progress * Math.PI * 6);
-        cat1.rotation = dance * 0.5;
-        cat2.rotation = -dance * 0.5;
-        cat3.rotation = dance * 0.45;
-        cat1.scaleX = 1 + dance * 0.1;
-        cat2.scaleX = 1 - dance * 0.1;
-        cat3.scaleX = 1 + dance * 0.15;
-        cat1.y = cat1.baseY - Math.abs(dance) * 30;
-        cat2.y = cat2.baseY - Math.abs(dance) * 30;
-        cat3.y = cat3.baseY - Math.abs(dance) * 40;
-        
-        // Slight position mirroring
-        cat1.x = cat1.x + dance * 0.5;
-        cat2.x = cat2.x - dance * 0.5;
-        cat3.x = cat3.x + dance * 0.4;
-      },
-    },
-  ], []);
+
 
   const drawCat = useCallback((ctx: CanvasRenderingContext2D, cat: Cat, isBlinking: boolean, time: number = 0) => {
     const preset = getCatPreset(cat.id);
@@ -643,16 +378,16 @@ export default function CatGame() {
   const startTrick = useCallback(() => {
     if (isPlaying) return;
     
-    const randomTrick = Math.floor(Math.random() * tricks.length);
+    const randomTrick = Math.floor(Math.random() * TRICKS.length);
     trickStateRef.current.currentTrick = randomTrick;
     trickStateRef.current.trickStartTime = performance.now();
     trickStateRef.current.progress = 0;
     setIsPlaying(true);
-    setCurrentTrickName(tricks[randomTrick].name);
+    setCurrentTrickName(TRICKS[randomTrick].name);
     
     // Play the trick sound
-    playTrickSound(tricks[randomTrick].sound);
-  }, [isPlaying, tricks]);
+    playTrickSound(TRICKS[randomTrick].sound);
+  }, [isPlaying]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -683,7 +418,7 @@ export default function CatGame() {
       const cats = catsRef.current;
 
       if (isPlaying) {
-        const trick = tricks[state.currentTrick];
+        const trick = TRICKS[state.currentTrick];
         const elapsed = time - state.trickStartTime;
         state.progress = Math.min(elapsed / trick.duration, 1);
 
@@ -740,7 +475,7 @@ export default function CatGame() {
       window.removeEventListener("keydown", handleKeyDown);
       cancelAnimationFrame(animationRef.current);
     };
-  }, [isPlaying, startTrick, drawBackground, drawCat, resetCatPosition, tricks]);
+  }, [isPlaying, startTrick, drawBackground, drawCat, resetCatPosition]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-blue-100 to-green-100 p-4">
