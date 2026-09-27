@@ -43,6 +43,14 @@ const games = [
     color: "from-teal-400 to-cyan-500",
     href: "/games/fishing",
   },
+  {
+    id: "hunt",
+    title: "Кот-Охотник",
+    description: "Ведите кота мышкой и ловите быстрых мышей!",
+    emoji: "🐭",
+    color: "from-green-400 to-emerald-500",
+    href: "/games/hunt",
+  },
 ];
 
 export default function Home() {

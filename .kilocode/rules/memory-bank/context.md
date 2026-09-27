@@ -22,6 +22,9 @@ A collection of fun mini-games featuring two adorable cats (Miuska and Aliska). 
 - [x] Bug fixes: back button, cat names, Sky Wonders falling items
 - [x] **Character architecture**: extracted all cats into `src/characters/` — one shared renderer, one palette, one set of presets
 - [x] **Third cat "Viki"** (grey kitten) added to all four mini-games
+- [x] **Cat Fishing** mini-game (`/games/fishing`) — first timing/skill game
+- [x] **Cat Music Band** rebuilt as a 3-lane rhythm game
+- [x] **Cat Hunt** mini-game (`/games/hunt`) — first game where you steer a cat
 
 ## Current Structure
 
@@ -42,6 +45,8 @@ A collection of fun mini-games featuring two adorable cats (Miuska and Aliska). 
 | `src/lib/audio.ts` | **Shared WebAudio** (AudioContext singleton, `playTone`) | ✅ Complete |
 | `src/components/CatFishing.tsx` | Fishing game component | ✅ Complete |
 | `src/app/games/fishing/page.tsx` | Fishing game route | ✅ Complete |
+| `src/components/CatHunt.tsx` | Chase game component | ✅ Complete |
+| `src/app/games/hunt/page.tsx` | Chase game route | ✅ Complete |
 | `.kilocode/` | AI context & recipes | ✅ Ready |
 
 ## Game Collection
@@ -97,6 +102,18 @@ A collection of fun mini-games featuring two adorable cats (Miuska and Aliska). 
 - **Rotating Angler**: A different cat holds the rod each cast; it perks up as the bite approaches
 - **Scene**: Pond with drifting clouds, reeds, ambient fish, the hooked fish swimming in
 
+### Game 6: Cat Hunt (`/games/hunt`)
+- **The first game where you steer a cat** — the pillar the other four were missing
+- **Control**: mouse (the cat chases the cursor and settles as it arrives) or WASD / arrows
+- **Round**: 60 seconds on a wall clock whose hand sweeps once across it
+- **Prey**: mice wander the floor and flee when the cat gets within 190px; they bounce off the walls
+- **Rare prize**: a golden mouse (50 pts, 5× a regular one, bigger) appears more often as time runs down
+- **Difficulty ramp**: mice get faster, spawn more often, more are alive at once, goldens get likelier
+- **Scoring**: 10 per mouse × a combo multiplier up to ×5 (a 24-catch streak), grade S→D by
+  catches-per-second, best score in `localStorage`
+- **Room**: wallpaper, wall clock, picture frame, couch, rug, mouse-hole plate; Алиска and Вики sit
+  on the couch at 0.7 scale watching Миуска hunt
+
 ## Cat Characters
 
 All games feature the same three cats, defined once in `src/characters/cats.ts` and
@@ -116,11 +133,11 @@ System" for the full contract.
 
 ## Current Focus
 
-Five mini-games, two of which are skill-based (Fishing, Music Band). The most
-valuable additions now would be ones where the player **steers** a cat: a mouse
-or arrow-key chaser, a platformer, or a maze. Still missing: scores shared across
-games and sound settings. Adding a cat is just a preset; adding a lane/instrument
-is one entry in `LANE_INSTRUMENTS`.
+Six mini-games. Three are now skill-based (Fishing, Music Band, Cat Hunt) and
+Cat Hunt finally lets the player steer a cat. Next candidates: a platformer
+(gravity, jump physics, platform collision) and a maze (procedural walls, path
+collision) — both are the remaining "control the cat" ideas. Still missing:
+scores shared across games and sound settings. Adding a cat is just a preset.
 
 ## Quick Start Guide
 
@@ -203,4 +220,5 @@ export async function GET() {
 | 2026-09-27 | Refactored architecture: cats moved to `src/characters/` (shared renderer `drawCat`, palette `CAT_COLORS`, motion `CAT_MOTION`, presets `CAT_PRESETS`). Removed ~4 copies of the 190-line sprite from the games. Fixed legacy Миднайт/Орео names. Verified all 26 render paths produce identical canvas geometry to the originals |
 | 2026-09-27 | Added third cat **Вики** (grey kitten, brown eyes, scale 0.75) to all four games. `CatGame`/`CatMusicBand` switched from two hardcoded cat refs to a `catsRef` array + `STAGE_MARKS`; tricks now receive `cats: Cat[]` so all three cats perform. Fixed `CatHiddenToys` seeker hardcoded to `Math.random() > 0.5 ? 0 : 1`, which excluded the third cat. Added `castNames()` for prose |
 | 2026-09-27 | Added 5th mini-game **Кошачья Рыбалка** (`/games/fishing`) — the first skill/timing game with a score, a streak multiplier and a persisted best. Extracted the AudioContext that was copy-pasted in all 4 games into `src/lib/audio.ts` (`getAudioContext`, `playTone`, `playSequence`). Added a cast line to `CatHiddenToys`, which was the only game whose UI named no cats |
+| 2026-09-27 | Added 6th mini-game **Кот-Охотник** (`/games/hunt`) — the first game where the player steers a cat: mouse or WASD/arrows, 60s round, mice that flee and bounce off walls, rare golden mouse, combo multiplier, wall clock timer. Алиска and Вики sit on the couch watching. Rules live in `src/components/cat-hunt.ts`. Raised the combo step from 4 to 6 catches after tests showed the ×5 cap was reachable in 16 catches |
 | 2026-09-27 | Rebuilt **Кошачий Оркестр** as a 3-lane rhythm game (was the dullest: press Space → 2s of canned animation, no input during it, no score). Each cat now owns a lane + instrument; notes fall on a 16th grid; Perfect/Good judgement, combo multiplier, accuracy grade, persisted best. Song data and judgement rules live in `src/components/music-song.ts` so the generator is testable without a browser. Moved the hit line to y=250 and the key hints to the lane header after tests showed key caps would be hidden behind the cats |

@@ -32,9 +32,10 @@ Layers, from the bottom up: **presets & tokens** → **renderer** → **shared u
 ### 2b. Testable Game Rules
 
 Game *rules* belong in a plain `.ts` module beside the component, not inline in
-it. `music-song.ts` holds the chart generator, the timing windows and the
-scoring functions; `CatMusicBand.tsx` only renders and wires up input. Keep the
-rules pure so they can be exercised without a browser.
+it. `music-song.ts` holds the chart generator, the timing windows and the scoring
+functions; `cat-hunt.ts` holds the room, the catch test and the difficulty curve.
+The `.tsx` only renders and wires up input. Keep the rules pure so they can be
+exercised without a browser.
 
 ## Shared Character System
 
