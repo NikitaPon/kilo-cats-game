@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 
 import { CAT_IDS, catName, drawCat as drawCatSprite, getCatPreset } from "@/characters";
 import type { CatActor } from "@/characters";
+import { useIsFullscreen } from "@/components/GameShell";
 import { getAudioContext } from "@/lib/audio";
 
 // Types
@@ -59,7 +60,9 @@ const TOY_TYPES: { type: Toy["type"]; name: string; color: string; emoji: string
 
 export default function CatHiddenToys() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const canvasWrapRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number>(0);
+  const isFullscreen = useIsFullscreen();
 
   const [toys, setToys] = useState<Toy[]>([]);
   const [cats, setCats] = useState<Cat[]>([
@@ -532,23 +535,38 @@ export default function CatHiddenToys() {
     ctx.restore();
   }, []);
 
-  // Scale the room canvas to the available space (also in fullscreen mode)
+  // Scale the room canvas to the space it gets (window or fullscreen)
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    const wrap = canvasWrapRef.current;
+    if (!canvas || !wrap) return;
 
     const resize = () => {
-      const parentWidth = canvas.parentElement?.clientWidth ?? ROOM_WIDTH;
-      const maxHeight = window.innerHeight - 240;
-      const scale = Math.max(0.4, Math.min(parentWidth / ROOM_WIDTH, maxHeight / ROOM_HEIGHT));
-      canvas.width = Math.round(ROOM_WIDTH * scale);
-      canvas.height = Math.round(ROOM_HEIGHT * scale);
+      const maxWidth = wrap.clientWidth;
+      const maxHeight = isFullscreen
+        ? wrap.clientHeight
+        : Math.min(wrap.clientHeight, window.innerHeight - 240);
+
+      const scale = Math.max(
+        0.3,
+        Math.min(maxWidth / ROOM_WIDTH, (maxHeight || ROOM_HEIGHT) / ROOM_HEIGHT)
+      );
+
+      const width = Math.round(ROOM_WIDTH * scale);
+      const height = Math.round(ROOM_HEIGHT * scale);
+      if (canvas.width !== width || canvas.height !== height) {
+        canvas.width = width;
+        canvas.height = height;
+      }
     };
 
     resize();
-    window.addEventListener("resize", resize);
-    return () => window.removeEventListener("resize", resize);
-  }, []);
+
+    const observer = new ResizeObserver(resize);
+    observer.observe(wrap);
+
+    return () => observer.disconnect();
+  }, [isFullscreen]);
 
   // Main animation loop
   useEffect(() => {
@@ -641,7 +659,18 @@ export default function CatHiddenToys() {
     const availableSpots = HIDING_SPOTS.filter((s) => !usedSpots.includes(s.id));
 
     if (availableSpots.length === 0) {
-      setMessage("Все игрушки найдены! 🎉");
+      // Игра пройдена — следующий пробел начинает её заново
+      setToys([]);
+      setDiscoveryAnimation({ active: false, x: 0, y: 0, progress: 0, toy: null });
+      setCats((prevCats) =>
+        prevCats.map((cat) => ({
+          ...cat,
+          isMoving: false,
+          isDiscovering: false,
+          discoveredToy: null,
+        }))
+      );
+      setMessage("Новая игра! Нажми Пробел — кошки снова ищут игрушки! 🔄");
       return;
     }
 
@@ -691,7 +720,12 @@ export default function CatHiddenToys() {
         toy: newToy,
       });
       playDiscoverySound(newToy.type);
-      setMessage(`Нашли ${randomToyType.name}! ${randomToyType.emoji}`);
+      const isLastToy = toys.length + 1 >= HIDING_SPOTS.length;
+      setMessage(
+        isLastToy
+          ? `Нашли ${randomToyType.name}! Все игрушки найдены 🎉 Нажми Пробел для новой игры`
+          : `Нашли ${randomToyType.name}! ${randomToyType.emoji}`
+      );
 
       // Reset cat state
       setCats((prevCats) =>
@@ -722,37 +756,56 @@ export default function CatHiddenToys() {
   }, [handleDiscover]);
 
   return (
-    <div className="flex flex-col items-center justify-center gap-4 w-full min-h-screen p-4">
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-purple-600 mb-2">🎁 Спрятанные Игрушки</h2>
-        <p className="text-gray-600">{message}</p>
+    <div
+      className={
+        isFullscreen
+          ? "flex items-center justify-center w-full h-full"
+          : "flex flex-col items-center justify-center gap-4 w-full min-h-screen p-4"
+      }
+    >
+      {!isFullscreen && (
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-purple-600 mb-2">🎁 Спрятанные Игрушки</h2>
+          <p className="text-gray-600">{message}</p>
+        </div>
+      )}
+
+      <div ref={canvasWrapRef} className={isFullscreen ? "relative w-full h-full flex items-center justify-center" : "w-full flex justify-center"}>
+        <canvas
+          ref={canvasRef}
+          width={ROOM_WIDTH}
+          height={ROOM_HEIGHT}
+          onClick={handleDiscover}
+          className="border-4 border-purple-300 rounded-xl cursor-pointer shadow-lg hover:border-purple-400 transition-colors"
+        />
+        {isFullscreen && (
+          <p className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full bg-white/85 text-gray-700 text-sm shadow">
+            {message}
+          </p>
+        )}
       </div>
 
-      <canvas
-        ref={canvasRef}
-        width={ROOM_WIDTH}
-        height={ROOM_HEIGHT}
-        onClick={handleDiscover}
-        className="border-4 border-purple-300 rounded-xl cursor-pointer shadow-lg hover:border-purple-400 transition-colors"
-      />
+      {!isFullscreen && (
+        <>
+          <div className="flex gap-4 text-sm text-gray-500">
+            <span>🎮 Нажми <kbd className="px-2 py-1 bg-gray-200 rounded">Пробел</kbd> или кликни</span>
+            <span>🎯 Найдено игрушек: {toys.length}/{HIDING_SPOTS.length}</span>
+          </div>
 
-      <div className="flex gap-4 text-sm text-gray-500">
-        <span>🎮 Нажми <kbd className="px-2 py-1 bg-gray-200 rounded">Пробел</kbd> или кликни</span>
-        <span>🎯 Найдено игрушек: {toys.length}/{HIDING_SPOTS.length}</span>
-      </div>
-
-      <p className="text-sm text-gray-500">
-        Ищут:{" "}
-        {CAT_IDS.map((id, i) => (
-          <span key={id}>
-            {i > 0 && ", "}
-            <span className="font-semibold text-gray-700">{catName(id)}</span>
-          </span>
-        ))}
-      </p>
+          <p className="text-sm text-gray-500">
+            Ищут:{" "}
+            {CAT_IDS.map((id, i) => (
+              <span key={id}>
+                {i > 0 && ", "}
+                <span className="font-semibold text-gray-700">{catName(id)}</span>
+              </span>
+            ))}
+          </p>
+        </>
+      )}
 
       {/* Toy collection display */}
-      {toys.length > 0 && (
+      {!isFullscreen && toys.length > 0 && (
         <div className="flex flex-wrap gap-2 justify-center max-w-lg">
           {toys.map((toy) => {
             const toyInfo = TOY_TYPES.find((t) => t.type === toy.type);

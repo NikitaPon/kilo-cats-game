@@ -1,13 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 
-type GameShellProps = {
-  children: React.ReactNode;
-};
+const FullscreenContext = createContext(false);
 
-export default function GameShell({ children }: GameShellProps) {
+export function useIsFullscreen() {
+  return useContext(FullscreenContext);
+}
+
+export default function GameShell({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
   const shellRef = useRef<HTMLDivElement>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -36,31 +39,32 @@ export default function GameShell({ children }: GameShellProps) {
   }, []);
 
   return (
-    <div
-      ref={shellRef}
-      className="relative min-h-screen bg-white"
-      style={isFullscreen ? { background: "#111827" } : undefined}
-    >
-      <Link
-        href="/"
-        className="fixed top-4 left-4 z-50 px-4 py-2 bg-white/90 rounded-full shadow-lg hover:bg-white transition-colors flex items-center gap-2"
-      >
-        <span>←</span>
-        <span>В меню</span>
-      </Link>
+    <FullscreenContext.Provider value={isFullscreen}>
+      <div ref={shellRef} className="relative min-h-screen bg-white">
+        <button
+          type="button"
+          onClick={() => router.push("/")}
+          className="fixed top-4 left-4 z-50 px-4 py-2 bg-white/90 rounded-full shadow-lg hover:bg-white transition-colors flex items-center gap-2 cursor-pointer"
+        >
+          <span>←</span>
+          <span>В меню</span>
+        </button>
 
-      <button
-        type="button"
-        onClick={toggleFullscreen}
-        aria-pressed={isFullscreen}
-        title={isFullscreen ? "Выйти из полноэкранного режима" : "На весь экран"}
-        className="fixed top-4 right-4 z-50 px-4 py-2 bg-white/90 rounded-full shadow-lg hover:bg-white transition-colors flex items-center gap-2"
-      >
-        <span>{isFullscreen ? "⤡" : "⛶"}</span>
-        <span>{isFullscreen ? "Обычный режим" : "На весь экран"}</span>
-      </button>
+        <button
+          type="button"
+          onClick={toggleFullscreen}
+          aria-pressed={isFullscreen}
+          title={isFullscreen ? "Выйти из полноэкранного режима" : "На весь экран"}
+          className="fixed top-4 right-4 z-50 px-4 py-2 bg-white/90 rounded-full shadow-lg hover:bg-white transition-colors flex items-center gap-2 cursor-pointer"
+        >
+          <span>{isFullscreen ? "⤡" : "⛶"}</span>
+          <span>{isFullscreen ? "Обычный режим" : "На весь экран"}</span>
+        </button>
 
-      {children}
-    </div>
+        <div className={isFullscreen ? "h-screen w-screen flex items-center justify-center overflow-hidden" : undefined}>
+          {children}
+        </div>
+      </div>
+    </FullscreenContext.Provider>
   );
 }
