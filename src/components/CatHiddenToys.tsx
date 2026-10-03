@@ -35,6 +35,9 @@ interface Cat extends CatActor {
   discoveredToy: Toy | null;
 }
 
+const ROOM_WIDTH = 900;
+const ROOM_HEIGHT = 500;
+
 // Hiding spots configuration
 const HIDING_SPOTS: HidingSpot[] = [
   { id: "pillow", name: "Под подушкой", x: 100, y: 280, width: 120, height: 60, type: "pillow" },
@@ -289,14 +292,12 @@ export default function CatHiddenToys() {
 
   // Draw a cat through the shared character renderer
   const drawCat = useCallback((ctx: CanvasRenderingContext2D, cat: Cat, time: number) => {
-    const isCurious = !cat.isMoving && !cat.isDiscovering;
-
     drawCatSprite(ctx, {
       preset: getCatPreset(cat.id),
       x: cat.x,
       y: cat.y,
       time,
-      expression: isCurious ? "squint" : "neutral",
+      expression: "neutral",
     });
   }, []);
 
@@ -531,6 +532,24 @@ export default function CatHiddenToys() {
     ctx.restore();
   }, []);
 
+  // Scale the room canvas to the available space (also in fullscreen mode)
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const resize = () => {
+      const parentWidth = canvas.parentElement?.clientWidth ?? ROOM_WIDTH;
+      const maxHeight = window.innerHeight - 240;
+      const scale = Math.max(0.4, Math.min(parentWidth / ROOM_WIDTH, maxHeight / ROOM_HEIGHT));
+      canvas.width = Math.round(ROOM_WIDTH * scale);
+      canvas.height = Math.round(ROOM_HEIGHT * scale);
+    };
+
+    resize();
+    window.addEventListener("resize", resize);
+    return () => window.removeEventListener("resize", resize);
+  }, []);
+
   // Main animation loop
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -543,8 +562,11 @@ export default function CatHiddenToys() {
 
     const animate = () => {
       const time = (Date.now() - startTime) / 1000;
-      const width = canvas.width;
-      const height = canvas.height;
+      const scale = canvas.width / ROOM_WIDTH;
+      const width = ROOM_WIDTH;
+      const height = ROOM_HEIGHT;
+
+      ctx.setTransform(scale, 0, 0, scale, 0, 0);
 
       // Clear canvas
       ctx.clearRect(0, 0, width, height);
@@ -685,10 +707,14 @@ export default function CatHiddenToys() {
   // Keyboard and click handlers
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.code === "Space") {
-        e.preventDefault();
-        handleDiscover();
-      }
+      if (e.code !== "Space") return;
+
+      // Не перехватываем Пробел, когда нажата кнопка или ссылка (например «В меню»)
+      const target = e.target as HTMLElement | null;
+      if (target && target.closest("a, button, input, select, textarea")) return;
+
+      e.preventDefault();
+      handleDiscover();
     };
 
     window.addEventListener("keydown", handleKeyDown);
@@ -696,7 +722,7 @@ export default function CatHiddenToys() {
   }, [handleDiscover]);
 
   return (
-    <div className="flex flex-col items-center gap-4 w-full">
+    <div className="flex flex-col items-center justify-center gap-4 w-full min-h-screen p-4">
       <div className="text-center">
         <h2 className="text-2xl font-bold text-purple-600 mb-2">🎁 Спрятанные Игрушки</h2>
         <p className="text-gray-600">{message}</p>
@@ -704,8 +730,8 @@ export default function CatHiddenToys() {
 
       <canvas
         ref={canvasRef}
-        width={900}
-        height={500}
+        width={ROOM_WIDTH}
+        height={ROOM_HEIGHT}
         onClick={handleDiscover}
         className="border-4 border-purple-300 rounded-xl cursor-pointer shadow-lg hover:border-purple-400 transition-colors"
       />

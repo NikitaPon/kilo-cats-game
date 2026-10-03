@@ -26,6 +26,10 @@ A collection of fun mini-games featuring two adorable cats (Miuska and Aliska). 
 - [x] **Cat Music Band** rebuilt as a 3-lane rhythm game
 - [x] **Cat Hunt** mini-game (`/games/hunt`) — first game where you steer a cat
 - [x] **Fourth cat "Yashka"** (black kitten, grey-blue tail) added to all six games
+- [x] **Fullscreen mode** for all mini-games via shared `src/components/GameShell.tsx` (back button + fullscreen toggle, used by every `/games/*` page)
+- [x] **Bug fix**: "В меню" button in Hidden Toys — global Space handler no longer hijacks keys pressed on focused links/buttons
+- [x] **Bug fix**: removed fur bars over cat eyes in Hidden Toys (expression `squint` → `neutral`)
+- [x] Hidden Toys canvas scales to available space (logical 900x500 room + `ctx.setTransform`)
 
 ## Current Structure
 
